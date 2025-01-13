@@ -9,6 +9,7 @@ exports.login = async (req, res) => {
         console.log('Login attempt:', username);
 
         const [results] = await db.promise().query('SELECT * FROM users WHERE username = ?', [username]);
+        console.log('Database query results:', results);
 
         if (results.length === 0) {
             console.log('User not found:', username);
@@ -17,6 +18,7 @@ exports.login = async (req, res) => {
 
         const user = results[0];
         const isPasswordValid = await bcrypt.compare(password, user.password);
+        console.log('Password validation result:', isPasswordValid);
 
         if (!isPasswordValid) {
             console.log('Invalid password for user:', username);
