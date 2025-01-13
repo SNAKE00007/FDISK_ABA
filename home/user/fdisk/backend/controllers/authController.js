@@ -8,6 +8,11 @@ exports.login = async (req, res) => {
     try {
         console.log('Login attempt:', username);
 
+        // Check if JWT_SECRET is set
+        if (!process.env.JWT_SECRET) {
+            console.error('JWT_SECRET is not set in the environment variables');
+            return res.status(500).json({ message: 'Server configuration error' });
+        }
         const [results] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
         console.log('Database query results:', results);
 
@@ -25,7 +30,6 @@ exports.login = async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        console.log('JWT_SECRET:', process.env.JWT_SECRET);
         const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         console.log('Login successful for user:', username);
