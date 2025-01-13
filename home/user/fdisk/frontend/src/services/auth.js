@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+// Use environment variable or server IP
+const API_URL = 'http://10.0.0.130:5000/api';
 
 export const login = async (username, password) => {
     try {

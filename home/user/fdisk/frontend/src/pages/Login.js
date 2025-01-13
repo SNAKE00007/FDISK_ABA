@@ -11,13 +11,13 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      console.log('Attempting login with username:', username);
-      const response = await login(username, password);
-      console.log('Login response:', response);
+      console.log('Attempting login...');
+      await login(username, password);
+      console.log('Login successful');
       history.push('/dashboard');
     } catch (err) {
-      console.error('Login error:', err);
-      setError(err.response?.data?.message || 'Invalid credentials');
+      console.error('Login failed:', err);
+      setError(err.response?.data?.message || 'Connection failed');
     }
   };
 
