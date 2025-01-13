@@ -3,15 +3,21 @@ import axios from 'axios';
 const API_URL = 'http://localhost:5000/api';
 
 export const login = async (username, password) => {
-  try {
-    const response = await axios.post(`${API_URL}/auth/login`, { username, password });
-    if (response.data.token) {
-      localStorage.setItem('user', JSON.stringify(response.data));
+    try {
+        const response = await axios.post(`${API_URL}/auth/login`, {
+            username,
+            password
+        });
+        
+        if (response.data.token) {
+            localStorage.setItem('user', JSON.stringify(response.data));
+        }
+        
+        return response.data;
+    } catch (error) {
+        console.error('Auth service error:', error);
+        throw error;
     }
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
 };
 
 export const logout = () => {
