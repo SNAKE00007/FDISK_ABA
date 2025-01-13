@@ -8,7 +8,7 @@ exports.login = async (req, res) => {
     try {
         console.log('Login attempt:', username);
 
-        const [results] = await db.promise().query('SELECT * FROM users WHERE username = ?', [username]);
+        const [results] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
         console.log('Database query results:', results);
 
         if (results.length === 0) {
