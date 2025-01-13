@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { db } = require('../index');
+const db = require('../db'); // Import the db module
 
 exports.login = async (req, res) => {
     const { username, password } = req.body;
