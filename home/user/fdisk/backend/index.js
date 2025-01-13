@@ -35,6 +35,10 @@ app.use('/api/users', userRoutes);
 app.use('/api/equipment', equipmentRoutes);
 app.use('/api/reports', reportRoutes);
 
+app.get('/', (req, res) => {
+    res.send('Backend server is running');
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
