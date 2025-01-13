@@ -1,5 +1,7 @@
 .dashboard {
   padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .dashboard-header {
@@ -7,40 +9,62 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
-  padding: 20px;
-  background-color: #f5f5f5;
-  border-radius: 8px;
+  padding: 24px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+
+.dashboard-header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1a1a1a;
 }
 
 .user-info {
   text-align: right;
 }
 
+.user-info p {
+  margin: 4px 0;
+  color: #4a5568;
+  font-size: 15px;
+}
+
 .dashboard-content {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
+  gap: 24px;
 }
 
 .quick-actions {
-  padding: 20px;
+  padding: 24px;
   background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.quick-actions h2 {
+  font-size: 20px;
+  margin-bottom: 16px;
+  color: #2d3748;
 }
 
 button {
   display: block;
   width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  background-color: #007bff;
+  padding: 12px;
+  margin: 8px 0;
+  background-color: #3182ce;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
 }
 
 button:hover {
-  background-color: #0056b3;
+  background-color: #2c5282;
 }
