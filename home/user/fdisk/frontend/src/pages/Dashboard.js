@@ -31,6 +31,7 @@ const Dashboard = () => {
       <div className="dashboard-content">
         <div className="quick-actions">
           <h2>Quick Actions</h2>
+          <button onClick={() => history.push('/members')}>Manage Members</button>
           <button onClick={() => history.push('/users')}>Manage Users</button>
           <button onClick={() => history.push('/equipment')}>Equipment</button>
           <button onClick={() => history.push('/reports')}>Reports</button>
