@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getMembers, createMember, updateMember } from '../services/members';
+import '../styles/Members.css';
 
 const Members = () => {
     const [members, setMembers] = useState([]);
@@ -15,6 +16,7 @@ const Members = () => {
         telefonnummer: '',
         status: 'active'
     });
+    const [editingId, setEditingId] = useState(null);
 
     useEffect(() => {
         fetchMembers();
@@ -22,7 +24,12 @@ const Members = () => {
 
     const fetchMembers = async () => {
         try {
-            const data = await getMembers();
+            const response = await fetch('http://localhost:5000/api/members', {
+                headers: { 
+                    'Authorization': localStorage.getItem('token')
+                }
+            });
+            const data = await response.json();
             setMembers(data);
         } catch (error) {
             console.error('Error fetching members:', error);
@@ -41,14 +48,32 @@ const Members = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            if (selectedMember) {
-                await updateMember(selectedMember.id, formData);
-            } else {
-                await createMember(formData);
+            const url = editingId 
+                ? `http://localhost:5000/api/members/${editingId}`
+                : 'http://localhost:5000/api/members';
+                
+            const method = editingId ? 'PUT' : 'POST';
+            
+            const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+            if (!user || !user.token) {
+                throw new Error('Not authenticated');
             }
-            fetchMembers();
-            setShowForm(false);
-            setSelectedMember(null);
+
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': user.token
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to save member');
+            }
+
+            await fetchMembers();
             setFormData({
                 vorname: '',
                 nachname: '',
@@ -58,14 +83,17 @@ const Members = () => {
                 telefonnummer: '',
                 status: 'active'
             });
+            setEditingId(null);
+            setShowForm(false);
         } catch (error) {
             console.error('Error saving member:', error);
+            alert(error.message);
         }
     };
 
     const handleEdit = (member) => {
-        setSelectedMember(member);
         setFormData(member);
+        setEditingId(member.id);
         setShowForm(true);
     };
 
@@ -100,64 +128,104 @@ const Members = () => {
             {showForm && (
                 <form onSubmit={handleSubmit} className="member-form">
                     <h2>{selectedMember ? 'Edit Member' : 'New Member'}</h2>
-                    <input
-                        type="text"
-                        placeholder="First Name"
-                        value={formData.vorname}
-                        onChange={(e) => setFormData({...formData, vorname: e.target.value})}
-                        required
-                    />
-                    <input
-                        type="text"
-                        placeholder="Last Name"
-                        value={formData.nachname}
-                        onChange={(e) => setFormData({...formData, nachname: e.target.value})}
-                        required
-                    />
-                    <input
-                        type="text"
-                        placeholder="Rank"
-                        value={formData.dienstgrad}
-                        onChange={(e) => setFormData({...formData, dienstgrad: e.target.value})}
-                    />
-                    <input
-                        type="date"
-                        placeholder="Birth Date"
-                        value={formData.geburtsdatum}
-                        onChange={(e) => setFormData({...formData, geburtsdatum: e.target.value})}
-                    />
-                    <input
-                        type="date"
-                        placeholder="Entry Date"
-                        value={formData.eintrittsdatum}
-                        onChange={(e) => setFormData({...formData, eintrittsdatum: e.target.value})}
-                    />
-                    <input
-                        type="tel"
-                        placeholder="Phone Number"
-                        value={formData.telefonnummer}
-                        onChange={(e) => setFormData({...formData, telefonnummer: e.target.value})}
-                    />
-                    <select
-                        value={formData.status}
-                        onChange={(e) => setFormData({...formData, status: e.target.value})}
-                    >
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                    <button type="submit">{selectedMember ? 'Update' : 'Create'}</button>
-                    <button type="button" onClick={() => setShowForm(false)}>Cancel</button>
+                    <div className="form-group">
+                        <label>First Name:</label>
+                        <input
+                            type="text"
+                            value={formData.vorname}
+                            onChange={(e) => setFormData({...formData, vorname: e.target.value})}
+                            required
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Last Name:</label>
+                        <input
+                            type="text"
+                            value={formData.nachname}
+                            onChange={(e) => setFormData({...formData, nachname: e.target.value})}
+                            required
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Rank:</label>
+                        <input
+                            type="text"
+                            value={formData.dienstgrad}
+                            onChange={(e) => setFormData({...formData, dienstgrad: e.target.value})}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Birth Date:</label>
+                        <input
+                            type="date"
+                            value={formData.geburtsdatum}
+                            onChange={(e) => setFormData({...formData, geburtsdatum: e.target.value})}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Entry Date:</label>
+                        <input
+                            type="date"
+                            value={formData.eintrittsdatum}
+                            onChange={(e) => setFormData({...formData, eintrittsdatum: e.target.value})}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Phone Number:</label>
+                        <input
+                            type="tel"
+                            value={formData.telefonnummer}
+                            onChange={(e) => setFormData({...formData, telefonnummer: e.target.value})}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Status:</label>
+                        <select
+                            value={formData.status}
+                            onChange={(e) => setFormData({...formData, status: e.target.value})}
+                        >
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div className="form-actions">
+                        <button type="submit">{selectedMember ? 'Update' : 'Create'}</button>
+                        <button type="button" onClick={() => setShowForm(false)}>Cancel</button>
+                    </div>
                 </form>
             )}
 
-            <div className="members-list">
-                {filteredMembers.map(member => (
-                    <div key={member.id} className="member-card" onClick={() => handleEdit(member)}>
-                        <h3>{member.dienstgrad} {member.vorname} {member.nachname}</h3>
-                        <p>Status: {member.status}</p>
-                        <p>Phone: {member.telefonnummer}</p>
-                    </div>
-                ))}
+            <div className="table-container">
+                <table className="members-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Birth Date</th>
+                            <th>Entry Date</th>
+                            <th>Phone</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredMembers.map(member => (
+                            <tr key={member.id}>
+                                <td>{member.dienstgrad}</td>
+                                <td>{member.vorname}</td>
+                                <td>{member.nachname}</td>
+                                <td>{member.geburtsdatum}</td>
+                                <td>{member.eintrittsdatum}</td>
+                                <td>{member.telefonnummer}</td>
+                                <td>{member.status}</td>
+                                <td>
+                                    <button onClick={() => handleEdit(member)}>Edit</button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
         </div>
     );

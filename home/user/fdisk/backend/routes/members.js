@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const { verifyToken } = require('../middleware/auth');
+
+// Protect all routes with authentication
+router.use(verifyToken);
 
 // Get all members
 router.get('/', async (req, res) => {

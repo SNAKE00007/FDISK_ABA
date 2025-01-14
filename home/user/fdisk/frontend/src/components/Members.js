@@ -188,15 +188,37 @@ const Members = () => {
                 </form>
             )}
 
-            <div className="members-list">
-                {filteredMembers.map(member => (
-                    <div key={member.id} className="member-card" onClick={() => handleEdit(member)}>
-                        <h3>{member.dienstgrad} {member.vorname} {member.nachname}</h3>
-                        <p>Status: {member.status}</p>
-                        <p>Phone: {member.telefonnummer}</p>
-                        <p>Entry Date: {member.eintrittsdatum}</p>
-                    </div>
-                ))}
+            <div className="table-container">
+                <table className="members-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Birth Date</th>
+                            <th>Entry Date</th>
+                            <th>Phone</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredMembers.map(member => (
+                            <tr key={member.id}>
+                                <td>{member.dienstgrad}</td>
+                                <td>{member.vorname}</td>
+                                <td>{member.nachname}</td>
+                                <td>{member.geburtsdatum}</td>
+                                <td>{member.eintrittsdatum}</td>
+                                <td>{member.telefonnummer}</td>
+                                <td>{member.status}</td>
+                                <td>
+                                    <button onClick={() => handleEdit(member)}>Edit</button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
         </div>
     );
