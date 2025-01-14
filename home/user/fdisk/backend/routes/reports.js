@@ -5,6 +5,8 @@ const { verifyToken } = require('../middleware/auth');
 
 router.use(verifyToken);
 
+
+//test
 // Get all reports
 router.get('/', async (req, res) => {
     try {
