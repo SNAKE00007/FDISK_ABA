@@ -10,27 +10,22 @@ router.get('/', async (req, res) => {
     try {
         const reports = await db.query(`
             SELECT r.*, 
-                   COALESCE(GROUP_CONCAT(rm.member_id), '') as member_ids
+                   COALESCE(GROUP_CONCAT(rm.member_id), '') as member_ids,
+                   r.description 
             FROM reports r 
             LEFT JOIN report_members rm ON r.id = rm.report_id 
-            GROUP BY r.id, r.start_datetime, r.end_datetime, r.duration, r.type, r.description
+            GROUP BY r.id, r.date, r.start_time, r.end_time, r.duration, r.type, r.description
         `);
         
-        // Format dates and handle null values
         const formattedReports = reports.map(report => ({
-            id: report.id,
-            start_datetime: report.start_datetime ? new Date(report.start_datetime).toISOString() : null,
-            end_datetime: report.end_datetime ? new Date(report.end_datetime).toISOString() : null,
-            duration: report.duration || null,
-            type: report.type,
-            description: report.description || '',
+            ...report,
             members: report.member_ids ? report.member_ids.split(',').map(Number) : []
         }));
-        
-        return res.json(formattedReports);
+
+        res.json(formattedReports);
     } catch (error) {
         console.error('Error fetching reports:', error);
-        return res.status(500).json({ message: 'Error fetching reports' });
+        res.status(500).json({ message: 'Error fetching reports' });
     }
 });
 
@@ -39,27 +34,21 @@ router.post('/', async (req, res) => {
     try {
         const { date, start_time, end_time, duration, type, description, members } = req.body;
         
-        // Ensure required fields are present
-        if (!date || !start_time || !type) {
-            return res.status(400).json({ message: 'Missing required fields' });
-        }
+        // Combine date and time into datetime format
+        const start_datetime = `${date} ${start_time}`;
+        let end_datetime = end_time ? `${date} ${end_time}` : null;
+        let calculatedDuration = duration;
 
-        // Combine date and start time into datetime format
-        const start_datetime = new Date(`${date}T${start_time}`).toISOString().slice(0, 19).replace('T', ' ');
-        
-        // Calculate end_datetime and duration
-        let end_datetime = null;
-        let calculatedDuration = null;
-
-        if (end_time) {
-            end_datetime = new Date(`${date}T${end_time}`).toISOString().slice(0, 19).replace('T', ' ');
-            const diffMs = new Date(`${date}T${end_time}`) - new Date(`${date}T${start_time}`);
-            calculatedDuration = Math.floor(diffMs / (1000 * 60)); // Convert to minutes
-        } else if (duration) {
-            const startDate = new Date(`${date}T${start_time}`);
-            const endDate = new Date(startDate.getTime() + duration * 60000);
-            end_datetime = endDate.toISOString().slice(0, 19).replace('T', ' ');
-            calculatedDuration = duration;
+        if (end_time && !duration) {
+            // Calculate duration if end_time is provided
+            const start = new Date(start_datetime);
+            const end = new Date(end_datetime);
+            const diff = Math.abs(end - start);
+            calculatedDuration = Math.floor(diff / (1000 * 60)); // Duration in minutes
+        } else if (!end_time && duration) {
+            // Calculate end_time if duration is provided
+            const start = new Date(start_datetime);
+            end_datetime = new Date(start.getTime() + duration * 60000); // Convert minutes to milliseconds
         }
 
         // Insert the report
@@ -84,62 +73,67 @@ router.post('/', async (req, res) => {
             duration: calculatedDuration,
             type,
             description,
-            members: members || []
+            members 
         });
     } catch (error) {
         console.error('Error creating report:', error);
-        res.status(500).json({ message: 'Error creating report' });
+        res.status(500).json({ message: 'Error creating report', error: error.message });
     }
 });
 
-// Update report
 router.put('/:id', async (req, res) => {
     try {
-        const { date, start_time, end_time, duration, type, description, members } = req.body;
+        const { start_datetime, end_datetime, duration, type, description, members } = req.body;
         
-        const start_datetime = new Date(`${date}T${start_time}`).toISOString().slice(0, 19).replace('T', ' ');
-        let end_datetime = null;
-        let calculatedDuration = null;
+        // Calculate missing value (either end_datetime or duration)
+        let calculatedEndDatetime = end_datetime;
+        let calculatedDuration = duration;
 
-        if (end_time) {
-            end_datetime = new Date(`${date}T${end_time}`).toISOString().slice(0, 19).replace('T', ' ');
-            const diffMs = new Date(`${date}T${end_time}`) - new Date(`${date}T${start_time}`);
-            calculatedDuration = Math.floor(diffMs / (1000 * 60));
-        } else if (duration) {
-            const startDate = new Date(`${date}T${start_time}`);
-            const endDate = new Date(startDate.getTime() + duration * 60000);
-            end_datetime = endDate.toISOString().slice(0, 19).replace('T', ' ');
-            calculatedDuration = duration;
+        if (end_datetime && !duration) {
+            const start = new Date(start_datetime);
+            const end = new Date(end_datetime);
+            const diff = Math.abs(end - start);
+            calculatedDuration = Math.floor(diff / (1000 * 60));
+        } else if (!end_datetime && duration) {
+            const start = new Date(start_datetime);
+            calculatedEndDatetime = new Date(start.getTime() + duration * 60000);
         }
 
+        // Update the report
         await db.query(
             'UPDATE reports SET start_datetime = ?, end_datetime = ?, duration = ?, type = ?, description = ? WHERE id = ?',
-            [start_datetime, end_datetime, calculatedDuration, type, description, req.params.id]
+            [start_datetime, calculatedEndDatetime, calculatedDuration, type, description, req.params.id]
         );
-
-        // Update member assignments
+        
+        // Delete existing member assignments
         await db.query('DELETE FROM report_members WHERE report_id = ?', [req.params.id]);
         
+        // Insert new member assignments if any
         if (members && members.length > 0) {
-            const values = members.map(memberId => [req.params.id, memberId]);
+            const placeholders = members.map(() => '(?, ?)').join(', ');
+            const values = members.reduce((acc, memberId) => {
+                acc.push(req.params.id, memberId);
+                return acc;
+            }, []);
+
             await db.query(
-                'INSERT INTO report_members (report_id, member_id) VALUES ?',
-                [values]
+                `INSERT INTO report_members (report_id, member_id) VALUES ${placeholders}`,
+                values
             );
         }
-
-        res.json({
+        
+        res.json({ 
             id: req.params.id,
             start_datetime,
-            end_datetime,
+            end_datetime: calculatedEndDatetime,
             duration: calculatedDuration,
             type,
             description,
-            members: members || []
+            members
         });
     } catch (error) {
         console.error('Error updating report:', error);
-        res.status(500).json({ message: 'Error updating report' });
+        res.status(500).json({ message: 'Error updating report', error: error.message });
     }
 });
 
