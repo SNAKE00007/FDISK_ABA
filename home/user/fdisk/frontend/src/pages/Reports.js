@@ -248,7 +248,11 @@ const Reports = () => {
                     </thead>
                     <tbody>
                         {reports.map(report => (
-                            <tr key={report.id}>
+                            <tr 
+                                key={report.id} 
+                                onClick={() => handleEdit(report)}
+                                style={{ cursor: 'pointer' }}
+                            >
                                 <td>{report.date}</td>
                                 <td>{report.time}</td>
                                 <td>{report.type}</td>
@@ -259,7 +263,7 @@ const Reports = () => {
                                         .map(member => `${member.dienstgrad} ${member.vorname} ${member.nachname}`)
                                         .join(', ')}
                                 </td>
-                                <td>
+                                <td className="action-buttons" onClick={e => e.stopPropagation()}>
                                     <button onClick={() => handleEdit(report)}>Edit</button>
                                     <button 
                                         onClick={() => handleDelete(report.id)}
