@@ -36,19 +36,15 @@ router.post('/', async (req, res) => {
 
         const { date, time, type, description, members } = req.body;
         
-        console.log('Creating report with data:', { date, time, type, description, members });
-
         // Insert the report
-        const result = await connection.query(
+        const [result] = await connection.query(
             'INSERT INTO reports (date, time, type, description) VALUES (?, ?, ?, ?)',
             [date, time, type, description]
         );
         
-        console.log('Report created:', result);
-
         // Insert member assignments if any
         if (members && members.length > 0) {
-            const values = members.map(memberId => [result[0].insertId, memberId]);
+            const values = members.map(memberId => [result.insertId, memberId]);
             await connection.query(
                 'INSERT INTO report_members (report_id, member_id) VALUES ?',
                 [values]
@@ -58,7 +54,7 @@ router.post('/', async (req, res) => {
         await connection.commit();
         
         res.status(201).json({ 
-            id: result[0].insertId,
+            id: result.insertId,
             date,
             time,
             type,
@@ -66,14 +62,11 @@ router.post('/', async (req, res) => {
             members 
         });
     } catch (error) {
-        console.error('Detailed error:', error);
         if (connection) {
             await connection.rollback();
         }
-        res.status(500).json({ 
-            message: 'Error creating report', 
-            error: error.message 
-        });
+        console.error('Error creating report:', error);
+        res.status(500).json({ message: error.message || 'Error creating report' });
     } finally {
         if (connection) {
             connection.release();
