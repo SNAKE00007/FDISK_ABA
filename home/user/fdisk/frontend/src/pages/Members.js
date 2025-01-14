@@ -24,15 +24,28 @@ const Members = () => {
 
     const fetchMembers = async () => {
         try {
+            const userData = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+            if (!userData || !userData.token) {
+                throw new Error('Not authenticated');
+            }
+
             const response = await fetch('http://localhost:5000/api/members', {
                 headers: { 
-                    'Authorization': localStorage.getItem('token')
-                }
+                    'Authorization': `${userData.token}`,
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
             });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch members');
+            }
+
             const data = await response.json();
             setMembers(data);
         } catch (error) {
             console.error('Error fetching members:', error);
+            alert(error.message);
         }
     };
 
@@ -54,8 +67,9 @@ const Members = () => {
                 
             const method = editingId ? 'PUT' : 'POST';
             
-            const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
-            if (!user || !user.token) {
+            // Get the full user object from localStorage
+            const userData = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+            if (!userData || !userData.token) {
                 throw new Error('Not authenticated');
             }
 
@@ -63,8 +77,9 @@ const Members = () => {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': user.token
+                    'Authorization': `${userData.token}` // Make sure token is properly formatted
                 },
+                credentials: 'include',
                 body: JSON.stringify(formData)
             });
 
@@ -73,6 +88,7 @@ const Members = () => {
                 throw new Error(errorData.message || 'Failed to save member');
             }
 
+            // Refresh member list and reset form
             await fetchMembers();
             setFormData({
                 vorname: '',
