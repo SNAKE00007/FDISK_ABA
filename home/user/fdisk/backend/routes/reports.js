@@ -11,7 +11,7 @@ router.post('/', async (req, res) => {
         const { date, time, type, description, members } = req.body;
         console.log('Creating report with:', { date, time, type, description, members });
 
-        // Start transaction using query
+        // Start transaction
         await db.query('START TRANSACTION');
 
         try {
