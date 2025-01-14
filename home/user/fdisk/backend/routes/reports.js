@@ -19,16 +19,20 @@ router.get('/', async (req, res) => {
         `);
         
         const formattedReports = reports.map(report => {
-            const reportDate = new Date(report.date);
-            const formattedDate = reportDate.toLocaleDateString('de-DE', {
+            // Format date for display in table
+            const displayDate = new Date(report.date).toLocaleDateString('de-DE', {
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric'
             });
 
+            // Format date for form input (YYYY-MM-DD)
+            const formDate = new Date(report.date).toISOString().split('T')[0];
+
             return {
                 ...report,
-                date: formattedDate,
+                displayDate: displayDate,  // For table display
+                date: formDate,            // For form input
                 members: report.member_ids ? report.member_ids.split(',').map(Number) : []
             };
         });
