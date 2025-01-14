@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
                    COALESCE(GROUP_CONCAT(rm.member_id), '') as member_ids
             FROM reports r 
             LEFT JOIN report_members rm ON r.id = rm.report_id 
-            GROUP BY r.id, r.start_datetime, r.end_datetime, r.duration, r.type, r.description
+            GROUP BY r.id
         `);
         
         const formattedReports = reports.map(report => ({
@@ -23,8 +23,8 @@ router.get('/', async (req, res) => {
 
         res.json(formattedReports);
     } catch (error) {
-        console.error('Error fetching reports:', error);
-        res.status(500).json({ message: 'Error fetching reports' });
+        console.error('Detailed error:', error);
+        res.status(500).json({ message: 'Error fetching reports', error: error.message });
     }
 });
 
@@ -50,41 +50,49 @@ router.post('/', async (req, res) => {
             calculatedDuration = Math.floor(diff / (1000 * 60));
         } else if (!end_time && duration) {
             const start = new Date(start_datetime);
-            end_datetime = new Date(start.getTime() + duration * 60000).toISOString().slice(0, 19).replace('T', ' ');
+            end_datetime = new Date(start.getTime() + duration * 60000)
+                .toISOString()
+                .slice(0, 19)
+                .replace('T', ' ');
         }
 
         // Insert the report
         const result = await db.query(
             'INSERT INTO reports (start_datetime, end_datetime, duration, type, description) VALUES (?, ?, ?, ?, ?)',
             [
-                start_datetime || null,
-                end_datetime || null,
-                calculatedDuration || null,
-                type || null,
+                start_datetime,
+                end_datetime,
+                calculatedDuration,
+                type,
                 description || null
             ]
         );
         
         // Insert member assignments if any
         if (members && Array.isArray(members) && members.length > 0) {
-            const values = members.map(memberId => [result.insertId, memberId]);
+            const placeholders = members.map(() => '(?, ?)').join(', ');
+            const values = members.reduce((acc, memberId) => {
+                acc.push(result.insertId, memberId);
+                return acc;
+            }, []);
+
             await db.query(
-                'INSERT INTO report_members (report_id, member_id) VALUES ?',
-                [values]
+                `INSERT INTO report_members (report_id, member_id) VALUES ${placeholders}`,
+                values
             );
         }
         
         res.status(201).json({ 
             id: result.insertId,
             start_datetime,
-            end_datetime: end_datetime || null,
-            duration: calculatedDuration || null,
+            end_datetime,
+            duration: calculatedDuration,
             type,
             description: description || null,
-            members: members || [] 
+            members: members || []
         });
     } catch (error) {
-        console.error('Error creating report:', error);
+        console.error('Detailed error:', error);
         res.status(500).json({ message: 'Error creating report', error: error.message });
     }
 });
