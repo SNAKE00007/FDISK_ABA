@@ -11,12 +11,18 @@ const pool = mysql.createPool({
     database: process.env.DB_NAME,
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    dateStrings: true // This helps with date handling
 });
 
 const query = async (sql, params) => {
-    const [results] = await pool.execute(sql, params);
-    return results;
+    try {
+        const [results] = await pool.execute(sql, params || []);
+        return results;
+    } catch (error) {
+        console.error('Database query error:', error);
+        throw error;
+    }
 };
 
 module.exports = { query };

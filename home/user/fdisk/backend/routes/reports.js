@@ -8,44 +8,29 @@ router.use(verifyToken);
 // Get all reports
 router.get('/', async (req, res) => {
     try {
-        // Simplified query to debug the issue
         const reports = await db.query(`
-            SELECT r.id, 
-                   r.start_datetime,
-                   r.end_datetime,
-                   r.duration,
-                   r.type,
-                   r.description,
+            SELECT r.*, 
                    COALESCE(GROUP_CONCAT(rm.member_id), '') as member_ids
             FROM reports r 
             LEFT JOIN report_members rm ON r.id = rm.report_id 
-            GROUP BY r.id
+            GROUP BY r.id, r.start_datetime, r.end_datetime, r.duration, r.type, r.description
         `);
         
-        // Add debug logging
-        console.log('Raw reports:', reports);
-        
+        // Format dates and handle null values
         const formattedReports = reports.map(report => ({
             id: report.id,
-            start_datetime: report.start_datetime,
-            end_datetime: report.end_datetime,
-            duration: report.duration,
+            start_datetime: report.start_datetime ? new Date(report.start_datetime).toISOString() : null,
+            end_datetime: report.end_datetime ? new Date(report.end_datetime).toISOString() : null,
+            duration: report.duration || null,
             type: report.type,
-            description: report.description,
+            description: report.description || '',
             members: report.member_ids ? report.member_ids.split(',').map(Number) : []
         }));
-
-        // Add debug logging
-        console.log('Formatted reports:', formattedReports);
         
         return res.json(formattedReports);
     } catch (error) {
-        console.error('Detailed error:', error);
-        return res.status(500).json({ 
-            message: 'Error fetching reports',
-            error: error.message,
-            stack: error.stack
-        });
+        console.error('Error fetching reports:', error);
+        return res.status(500).json({ message: 'Error fetching reports' });
     }
 });
 
