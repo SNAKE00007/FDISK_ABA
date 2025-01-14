@@ -43,11 +43,11 @@ router.post('/', async (req, res) => {
             const start = new Date(start_datetime);
             const end = new Date(end_datetime);
             const diff = Math.abs(end - start);
-            calculatedDuration = Math.floor(diff / (1000 * 60)); // Duration in minutes
+            calculatedDuration = Math.floor(diff / (1000 * 60));
         } else if (!end_time && duration) {
             // Calculate end_time if duration is provided
             const start = new Date(start_datetime);
-            end_datetime = new Date(start.getTime() + duration * 60000); // Convert minutes to milliseconds
+            end_datetime = new Date(start.getTime() + duration * 60000);
         }
 
         // Insert the report
@@ -58,10 +58,15 @@ router.post('/', async (req, res) => {
         
         // Insert member assignments if any
         if (members && members.length > 0) {
-            const values = members.map(memberId => [result.insertId, memberId]);
+            const placeholders = members.map(() => '(?, ?)').join(', ');
+            const values = members.reduce((acc, memberId) => {
+                acc.push(result.insertId, memberId);
+                return acc;
+            }, []);
+
             await db.query(
-                'INSERT INTO report_members (report_id, member_id) VALUES ?',
-                [values]
+                `INSERT INTO report_members (report_id, member_id) VALUES ${placeholders}`,
+                values
             );
         }
         
