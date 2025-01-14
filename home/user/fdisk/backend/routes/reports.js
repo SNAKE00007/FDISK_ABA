@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
                    COALESCE(GROUP_CONCAT(rm.member_id), '') as member_ids
             FROM reports r 
             LEFT JOIN report_members rm ON r.id = rm.report_id 
-            GROUP BY r.id
+            GROUP BY r.id, r.start_datetime, r.end_datetime, r.duration, r.type, r.description
         `);
         
         const formattedReports = reports.map(report => ({
@@ -23,8 +23,8 @@ router.get('/', async (req, res) => {
 
         res.json(formattedReports);
     } catch (error) {
-        console.error('Detailed error:', error);
-        res.status(500).json({ message: 'Error fetching reports', error: error.message });
+        console.error('Error fetching reports:', error);
+        res.status(500).json({ message: 'Error fetching reports' });
     }
 });
 
