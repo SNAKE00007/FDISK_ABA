@@ -32,13 +32,28 @@ router.get('/', async (req, res) => {
 // Create report
 router.post('/', async (req, res) => {
     try {
-        const { date, start_time, end_time, duration, type, description, members } = req.body;
-        console.log('Creating report with:', { date, start_time, end_time, duration, type, description, members });
+        const { start_datetime, end_datetime, duration, type, description, members } = req.body;
+        
+        // Calculate missing value (either end_datetime or duration)
+        let calculatedEndDatetime = end_datetime;
+        let calculatedDuration = duration;
+
+        if (end_datetime && !duration) {
+            // Calculate duration if end_datetime is provided
+            const start = new Date(start_datetime);
+            const end = new Date(end_datetime);
+            const diff = Math.abs(end - start);
+            calculatedDuration = Math.floor(diff / (1000 * 60)); // Duration in minutes
+        } else if (!end_datetime && duration) {
+            // Calculate end_datetime if duration is provided
+            const start = new Date(start_datetime);
+            calculatedEndDatetime = new Date(start.getTime() + duration * 60000); // Convert minutes to milliseconds
+        }
 
         // Insert the report
         const result = await db.query(
-            'INSERT INTO reports (date, start_time, end_time, duration, type, description) VALUES (?, ?, ?, ?, ?, ?)',
-            [date, start_time, end_time, duration, type, description]
+            'INSERT INTO reports (start_datetime, end_datetime, duration, type, description) VALUES (?, ?, ?, ?, ?)',
+            [start_datetime, calculatedEndDatetime, calculatedDuration, type, description]
         );
         
         // Insert member assignments if any
@@ -57,10 +72,9 @@ router.post('/', async (req, res) => {
         
         res.status(201).json({ 
             id: result.insertId,
-            date,
-            start_time,
-            end_time,
-            duration,
+            start_datetime,
+            end_datetime: calculatedEndDatetime,
+            duration: calculatedDuration,
             type,
             description,
             members 
@@ -73,12 +87,26 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
     try {
-        const { date, start_time, end_time, duration, type, description, members } = req.body;
+        const { start_datetime, end_datetime, duration, type, description, members } = req.body;
         
+        // Calculate missing value (either end_datetime or duration)
+        let calculatedEndDatetime = end_datetime;
+        let calculatedDuration = duration;
+
+        if (end_datetime && !duration) {
+            const start = new Date(start_datetime);
+            const end = new Date(end_datetime);
+            const diff = Math.abs(end - start);
+            calculatedDuration = Math.floor(diff / (1000 * 60));
+        } else if (!end_datetime && duration) {
+            const start = new Date(start_datetime);
+            calculatedEndDatetime = new Date(start.getTime() + duration * 60000);
+        }
+
         // Update the report
         await db.query(
-            'UPDATE reports SET date = ?, start_time = ?, end_time = ?, duration = ?, type = ?, description = ? WHERE id = ?',
-            [date, start_time, end_time, duration, type, description, req.params.id]
+            'UPDATE reports SET start_datetime = ?, end_datetime = ?, duration = ?, type = ?, description = ? WHERE id = ?',
+            [start_datetime, calculatedEndDatetime, calculatedDuration, type, description, req.params.id]
         );
         
         // Delete existing member assignments
@@ -100,10 +128,9 @@ router.put('/:id', async (req, res) => {
         
         res.json({ 
             id: req.params.id,
-            date,
-            start_time,
-            end_time,
-            duration,
+            start_datetime,
+            end_datetime: calculatedEndDatetime,
+            duration: calculatedDuration,
             type,
             description,
             members
