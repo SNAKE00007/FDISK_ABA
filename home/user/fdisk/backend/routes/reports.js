@@ -33,10 +33,15 @@ router.post('/', async (req, res) => {
     try {
         const { date, start_time, end_time, duration, type, description, members } = req.body;
         
+        // Ensure required fields are present
+        if (!date || !start_time || !type) {
+            return res.status(400).json({ message: 'Missing required fields' });
+        }
+
         // Combine date and time into datetime format
         const start_datetime = `${date} ${start_time}`;
         let end_datetime = end_time ? `${date} ${end_time}` : null;
-        let calculatedDuration = duration;
+        let calculatedDuration = duration || null;
 
         if (end_time && !duration) {
             // Calculate duration if end_time is provided
@@ -47,37 +52,38 @@ router.post('/', async (req, res) => {
         } else if (!end_time && duration) {
             // Calculate end_time if duration is provided
             const start = new Date(start_datetime);
-            end_datetime = new Date(start.getTime() + duration * 60000);
+            end_datetime = new Date(start.getTime() + duration * 60000).toISOString().slice(0, 19).replace('T', ' ');
         }
 
-        // Insert the report
+        // Insert the report with null checks
         const result = await db.query(
             'INSERT INTO reports (start_datetime, end_datetime, duration, type, description) VALUES (?, ?, ?, ?, ?)',
-            [start_datetime, end_datetime, calculatedDuration, type, description]
+            [
+                start_datetime,
+                end_datetime || null,
+                calculatedDuration || null,
+                type,
+                description || null
+            ]
         );
         
         // Insert member assignments if any
         if (members && members.length > 0) {
-            const placeholders = members.map(() => '(?, ?)').join(', ');
-            const values = members.reduce((acc, memberId) => {
-                acc.push(result.insertId, memberId);
-                return acc;
-            }, []);
-
+            const values = members.map(memberId => [result.insertId, memberId]);
             await db.query(
-                `INSERT INTO report_members (report_id, member_id) VALUES ${placeholders}`,
-                values
+                'INSERT INTO report_members (report_id, member_id) VALUES ?',
+                [values]
             );
         }
         
         res.status(201).json({ 
             id: result.insertId,
             start_datetime,
-            end_datetime,
-            duration: calculatedDuration,
+            end_datetime: end_datetime || null,
+            duration: calculatedDuration || null,
             type,
-            description,
-            members 
+            description: description || null,
+            members: members || [] 
         });
     } catch (error) {
         console.error('Error creating report:', error);
