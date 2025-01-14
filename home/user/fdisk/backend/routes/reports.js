@@ -32,48 +32,44 @@ router.get('/', async (req, res) => {
 // Create report
 router.post('/', async (req, res) => {
     try {
-        const { start_datetime, end_datetime, duration, type, description, members } = req.body;
+        const { date, start_time, end_time, duration, type, description, members } = req.body;
         
-        // Calculate missing value (either end_datetime or duration)
-        let calculatedEndDatetime = end_datetime;
+        // Combine date and time into datetime format
+        const start_datetime = `${date} ${start_time}`;
+        let end_datetime = end_time ? `${date} ${end_time}` : null;
         let calculatedDuration = duration;
 
-        if (end_datetime && !duration) {
-            // Calculate duration if end_datetime is provided
+        if (end_time && !duration) {
+            // Calculate duration if end_time is provided
             const start = new Date(start_datetime);
             const end = new Date(end_datetime);
             const diff = Math.abs(end - start);
             calculatedDuration = Math.floor(diff / (1000 * 60)); // Duration in minutes
-        } else if (!end_datetime && duration) {
-            // Calculate end_datetime if duration is provided
+        } else if (!end_time && duration) {
+            // Calculate end_time if duration is provided
             const start = new Date(start_datetime);
-            calculatedEndDatetime = new Date(start.getTime() + duration * 60000); // Convert minutes to milliseconds
+            end_datetime = new Date(start.getTime() + duration * 60000); // Convert minutes to milliseconds
         }
 
         // Insert the report
         const result = await db.query(
             'INSERT INTO reports (start_datetime, end_datetime, duration, type, description) VALUES (?, ?, ?, ?, ?)',
-            [start_datetime, calculatedEndDatetime, calculatedDuration, type, description]
+            [start_datetime, end_datetime, calculatedDuration, type, description]
         );
         
         // Insert member assignments if any
         if (members && members.length > 0) {
-            const placeholders = members.map(() => '(?, ?)').join(', ');
-            const values = members.reduce((acc, memberId) => {
-                acc.push(result.insertId, memberId);
-                return acc;
-            }, []);
-
+            const values = members.map(memberId => [result.insertId, memberId]);
             await db.query(
-                `INSERT INTO report_members (report_id, member_id) VALUES ${placeholders}`,
-                values
+                'INSERT INTO report_members (report_id, member_id) VALUES ?',
+                [values]
             );
         }
         
         res.status(201).json({ 
             id: result.insertId,
             start_datetime,
-            end_datetime: calculatedEndDatetime,
+            end_datetime,
             duration: calculatedDuration,
             type,
             description,
@@ -81,7 +77,7 @@ router.post('/', async (req, res) => {
         });
     } catch (error) {
         console.error('Error creating report:', error);
-        res.status(500).json({ message: 'Error creating report' });
+        res.status(500).json({ message: 'Error creating report', error: error.message });
     }
 });
 
