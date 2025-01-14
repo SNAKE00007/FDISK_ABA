@@ -19,20 +19,18 @@ router.get('/', async (req, res) => {
         `);
         
         const formattedReports = reports.map(report => {
-            // Format date for display in table
-            const displayDate = new Date(report.date).toLocaleDateString('de-DE', {
+            // Convert date to German format for display
+            const dateObj = new Date(report.date);
+            const germanDate = dateObj.toLocaleDateString('de-DE', {
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric'
             });
 
-            // Format date for form input (YYYY-MM-DD)
-            const formDate = new Date(report.date).toISOString().split('T')[0];
-
             return {
                 ...report,
-                displayDate: displayDate,  // For table display
-                date: formDate,            // For form input
+                displayDate: germanDate,  // Add formatted date for display
+                date: report.date,        // Keep original date for form
                 members: report.member_ids ? report.member_ids.split(',').map(Number) : []
             };
         });
