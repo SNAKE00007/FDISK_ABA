@@ -16,14 +16,33 @@ router.get('/', async (req, res) => {
 // Create member
 router.post('/', async (req, res) => {
     try {
+        const { vorname, nachname, dienstgrad, geburtsdatum, eintrittsdatum, telefonnummer, status } = req.body;
         const result = await db.query(
-            'INSERT INTO members SET ?',
-            [req.body]
+            'INSERT INTO members (vorname, nachname, dienstgrad, geburtsdatum, eintrittsdatum, telefonnummer, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [vorname, nachname, dienstgrad, geburtsdatum, eintrittsdatum, telefonnummer, status]
         );
         res.status(201).json({ id: result.insertId, ...req.body });
     } catch (error) {
         console.error('Error creating member:', error);
         res.status(500).json({ message: 'Error creating member' });
+    }
+});
+
+// Update member
+router.put('/:id', async (req, res) => {
+    try {
+        const result = await db.query(
+            'UPDATE members SET ? WHERE id = ?',
+            [req.body, req.params.id]
+        );
+        if (result.affectedRows === 0) {
+            res.status(404).json({ message: 'Member not found' });
+        } else {
+            res.json({ id: req.params.id, ...req.body });
+        }
+    } catch (error) {
+        console.error('Error updating member:', error);
+        res.status(500).json({ message: 'Error updating member' });
     }
 });
 

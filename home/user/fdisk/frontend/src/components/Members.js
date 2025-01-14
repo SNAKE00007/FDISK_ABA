@@ -16,6 +16,7 @@ const Members = () => {
         telefonnummer: '',
         status: 'active'
     });
+    const [editingId, setEditingId] = useState(null);
 
     useEffect(() => {
         fetchMembers();
@@ -23,7 +24,12 @@ const Members = () => {
 
     const fetchMembers = async () => {
         try {
-            const data = await getMembers();
+            const response = await fetch('http://localhost:5000/api/members', {
+                headers: { 
+                    'Authorization': localStorage.getItem('token')
+                }
+            });
+            const data = await response.json();
             setMembers(data);
         } catch (error) {
             console.error('Error fetching members:', error);
@@ -42,24 +48,36 @@ const Members = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            console.log('Submitting member data:', formData);
-            if (selectedMember) {
-                await updateMember(selectedMember.id, formData);
-            } else {
-                await createMember(formData);
-            }
-            await fetchMembers();
-            setShowForm(false);
-            setSelectedMember(null);
-            setFormData({
-                vorname: '',
-                nachname: '',
-                dienstgrad: '',
-                geburtsdatum: '',
-                eintrittsdatum: '',
-                telefonnummer: '',
-                status: 'active'
+            const url = editingId 
+                ? `http://localhost:5000/api/members/${editingId}`
+                : 'http://localhost:5000/api/members';
+                
+            const method = editingId ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': localStorage.getItem('token')
+                },
+                body: JSON.stringify(formData)
             });
+
+            if (response.ok) {
+                fetchMembers();
+                setFormData({
+                    vorname: '',
+                    nachname: '',
+                    dienstgrad: '',
+                    geburtsdatum: '',
+                    eintrittsdatum: '',
+                    telefonnummer: '',
+                    status: 'active'
+                });
+                setEditingId(null);
+                setShowForm(false);
+                setSelectedMember(null);
+            }
         } catch (error) {
             console.error('Error saving member:', error);
             alert('Failed to save member: ' + error.message);
@@ -67,8 +85,8 @@ const Members = () => {
     };
 
     const handleEdit = (member) => {
-        setSelectedMember(member);
         setFormData(member);
+        setEditingId(member.id);
         setShowForm(true);
     };
 

@@ -40,7 +40,7 @@
 .member-form {
     background: white;
     padding: 20px;
-    border-radius: 4px;
+    border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     margin-bottom: 20px;
 }
@@ -57,4 +57,68 @@
 
 .member-form button {
     margin-right: 10px;
+}
+
+.members-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.form-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.form-row input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.members-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.members-table th,
+.members-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.members-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.members-table tr:hover {
+    background-color: #f5f5f5;
+}
+
+button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+button + button {
+    margin-left: 8px;
+    background-color: #6c757d;
 }
