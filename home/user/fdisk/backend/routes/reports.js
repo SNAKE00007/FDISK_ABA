@@ -30,30 +30,44 @@ router.post('/', async (req, res) => {
     try {
         const { date, time, type, description, members } = req.body;
         
-        const result = await db.query(
-            'INSERT INTO reports (date, time, type, description) VALUES (?, ?, ?, ?)',
-            [date, time, type, description]
-        );
+        // Start a transaction
+        await db.query('START TRANSACTION');
         
-        if (members && members.length > 0) {
-            const values = members.map(memberId => [result.insertId, memberId]);
-            await db.query(
-                'INSERT INTO report_members (report_id, member_id) VALUES ?',
-                [values]
+        try {
+            // Insert the report
+            const result = await db.query(
+                'INSERT INTO reports (date, time, type, description) VALUES (?, ?, ?, ?)',
+                [date, time, type, description]
             );
+            
+            // Insert member assignments if any
+            if (members && members.length > 0) {
+                const values = members.map(memberId => [result.insertId, memberId]);
+                await db.query(
+                    'INSERT INTO report_members (report_id, member_id) VALUES ?',
+                    [values]
+                );
+            }
+            
+            // Commit the transaction
+            await db.query('COMMIT');
+            
+            res.status(201).json({ 
+                id: result.insertId,
+                date,
+                time,
+                type,
+                description,
+                members 
+            });
+        } catch (error) {
+            // Rollback on error
+            await db.query('ROLLBACK');
+            throw error;
         }
-        
-        res.status(201).json({ 
-            id: result.insertId,
-            date,
-            time,
-            type,
-            description,
-            members 
-        });
     } catch (error) {
         console.error('Error creating report:', error);
-        res.status(500).json({ message: 'Error creating report' });
+        res.status(500).json({ message: 'Error creating report: ' + error.message });
     }
 });
 
