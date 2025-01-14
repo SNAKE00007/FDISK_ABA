@@ -5,56 +5,6 @@ const { verifyToken } = require('../middleware/auth');
 
 router.use(verifyToken);
 
-// Create report
-router.post('/', async (req, res) => {
-    try {
-        const { date, time, type, description, members } = req.body;
-        console.log('Creating report with:', { date, time, type, description, members });
-
-        // Start transaction
-        await db.query('START TRANSACTION');
-
-        try {
-            // Insert the report
-            const result = await db.query(
-                'INSERT INTO reports (date, time, type, description) VALUES (?, ?, ?, ?)',
-                [date, time, type, description]
-            );
-            
-            // Insert member assignments if any
-            if (members && members.length > 0) {
-                const values = members.map(memberId => [result.insertId, memberId]);
-                await db.query(
-                    'INSERT INTO report_members (report_id, member_id) VALUES ?',
-                    [values]
-                );
-            }
-            
-            // Commit transaction
-            await db.query('COMMIT');
-            
-            res.status(201).json({ 
-                id: result.insertId,
-                date,
-                time,
-                type,
-                description,
-                members 
-            });
-        } catch (error) {
-            // Rollback on error
-            await db.query('ROLLBACK');
-            throw error;
-        }
-    } catch (error) {
-        console.error('Detailed error:', error);
-        res.status(500).json({ 
-            message: 'Error creating report',
-            error: error.message 
-        });
-    }
-});
-
 // Get all reports
 router.get('/', async (req, res) => {
     try {
@@ -74,11 +24,43 @@ router.get('/', async (req, res) => {
 
         res.json(formattedReports);
     } catch (error) {
-        console.error('Detailed error:', error);
-        res.status(500).json({ 
-            message: 'Error fetching reports',
-            error: error.message 
+        console.error('Error fetching reports:', error);
+        res.status(500).json({ message: 'Error fetching reports' });
+    }
+});
+
+// Create report
+router.post('/', async (req, res) => {
+    try {
+        const { date, time, type, description, members } = req.body;
+        console.log('Creating report with:', { date, time, type, description, members });
+
+        // Insert the report
+        const result = await db.query(
+            'INSERT INTO reports (date, time, type, description) VALUES (?, ?, ?, ?)',
+            [date, time, type, description]
+        );
+        
+        // Insert member assignments if any
+        if (members && members.length > 0) {
+            const values = members.map(memberId => [result.insertId, memberId]);
+            await db.query(
+                'INSERT INTO report_members (report_id, member_id) VALUES ?',
+                [values]
+            );
+        }
+        
+        res.status(201).json({ 
+            id: result.insertId,
+            date,
+            time,
+            type,
+            description,
+            members 
         });
+    } catch (error) {
+        console.error('Error creating report:', error);
+        res.status(500).json({ message: 'Error creating report' });
     }
 });
 
