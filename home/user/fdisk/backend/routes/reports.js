@@ -44,40 +44,33 @@ router.post('/', async (req, res) => {
         let calculatedDuration = duration || null;
 
         if (end_time && !duration) {
-            // Calculate duration if end_time is provided
             const start = new Date(start_datetime);
             const end = new Date(end_datetime);
             const diff = Math.abs(end - start);
             calculatedDuration = Math.floor(diff / (1000 * 60));
         } else if (!end_time && duration) {
-            // Calculate end_time if duration is provided
             const start = new Date(start_datetime);
             end_datetime = new Date(start.getTime() + duration * 60000).toISOString().slice(0, 19).replace('T', ' ');
         }
 
-        // Insert the report with null checks
+        // Insert the report
         const result = await db.query(
             'INSERT INTO reports (start_datetime, end_datetime, duration, type, description) VALUES (?, ?, ?, ?, ?)',
             [
-                start_datetime,
+                start_datetime || null,
                 end_datetime || null,
                 calculatedDuration || null,
-                type,
+                type || null,
                 description || null
             ]
         );
         
         // Insert member assignments if any
-        if (members && members.length > 0) {
-            const placeholders = members.map(() => '(?, ?)').join(', ');
-            const values = members.reduce((acc, memberId) => {
-                acc.push(result.insertId, memberId);
-                return acc;
-            }, []);
-
+        if (members && Array.isArray(members) && members.length > 0) {
+            const values = members.map(memberId => [result.insertId, memberId]);
             await db.query(
-                `INSERT INTO report_members (report_id, member_id) VALUES ${placeholders}`,
-                values
+                'INSERT INTO report_members (report_id, member_id) VALUES ?',
+                [values]
             );
         }
         
