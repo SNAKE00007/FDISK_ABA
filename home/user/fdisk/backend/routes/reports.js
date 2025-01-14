@@ -70,7 +70,6 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Update report
 router.put('/:id', async (req, res) => {
     try {
         const { date, time, type, description, members } = req.body;
@@ -84,12 +83,17 @@ router.put('/:id', async (req, res) => {
         // Delete existing member assignments
         await db.query('DELETE FROM report_members WHERE report_id = ?', [req.params.id]);
         
-        // Insert new member assignments
+        // Insert new member assignments if any
         if (members && members.length > 0) {
-            const values = members.map(memberId => [req.params.id, memberId]);
+            const placeholders = members.map(() => '(?, ?)').join(', ');
+            const values = members.reduce((acc, memberId) => {
+                acc.push(req.params.id, memberId);
+                return acc;
+            }, []);
+
             await db.query(
-                'INSERT INTO report_members (report_id, member_id) VALUES ?',
-                [values]
+                `INSERT INTO report_members (report_id, member_id) VALUES ${placeholders}`,
+                values
             );
         }
         
@@ -99,11 +103,11 @@ router.put('/:id', async (req, res) => {
             time,
             type,
             description,
-            members 
+            members
         });
     } catch (error) {
         console.error('Error updating report:', error);
-        res.status(500).json({ message: 'Error updating report' });
+        res.status(500).json({ message: 'Error updating report', error: error.message });
     }
 });
 
