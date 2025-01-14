@@ -35,7 +35,8 @@ router.post('/', async (req, res) => {
         await connection.beginTransaction();
 
         const { date, time, type, description, members } = req.body;
-        
+        console.log('Creating report with:', { date, time, type, description, members });
+
         // Insert the report
         const [result] = await connection.query(
             'INSERT INTO reports (date, time, type, description) VALUES (?, ?, ?, ?)',
@@ -65,8 +66,11 @@ router.post('/', async (req, res) => {
         if (connection) {
             await connection.rollback();
         }
-        console.error('Error creating report:', error);
-        res.status(500).json({ message: error.message || 'Error creating report' });
+        console.error('Detailed error:', error);
+        res.status(500).json({ 
+            message: 'Error creating report',
+            error: error.message 
+        });
     } finally {
         if (connection) {
             connection.release();
