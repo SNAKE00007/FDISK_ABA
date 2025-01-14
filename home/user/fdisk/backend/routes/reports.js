@@ -137,4 +137,22 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+const handleEdit = (report) => {
+    // Convert the German formatted date (dd.mm.yyyy) back to ISO format (yyyy-mm-dd)
+    const [day, month, year] = report.date.split('.');
+    const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+
+    setFormData({
+        date: isoDate, // Set the ISO formatted date
+        start_time: report.start_time,
+        end_time: report.end_time || '',
+        duration: report.duration || '',
+        type: report.type,
+        description: report.description,
+        members: report.members || []
+    });
+    setEditingReport(report);
+    setShowForm(true);
+};
+
 module.exports = router;
