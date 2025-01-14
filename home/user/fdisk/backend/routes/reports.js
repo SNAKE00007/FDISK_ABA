@@ -38,47 +38,36 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ message: 'Missing required fields' });
         }
 
-        // Combine date and time into datetime format
-        const start_datetime = `${date} ${start_time}`;
-        let end_datetime = end_time ? `${date} ${end_time}` : null;
-        let calculatedDuration = duration || null;
+        // Combine date and start time into datetime format
+        const start_datetime = new Date(`${date}T${start_time}`).toISOString().slice(0, 19).replace('T', ' ');
+        
+        // Calculate end_datetime and duration
+        let end_datetime = null;
+        let calculatedDuration = null;
 
-        if (end_time && !duration) {
-            const start = new Date(start_datetime);
-            const end = new Date(end_datetime);
-            const diff = Math.abs(end - start);
-            calculatedDuration = Math.floor(diff / (1000 * 60));
-        } else if (!end_time && duration) {
-            const start = new Date(start_datetime);
-            end_datetime = new Date(start.getTime() + duration * 60000)
-                .toISOString()
-                .slice(0, 19)
-                .replace('T', ' ');
+        if (end_time) {
+            end_datetime = new Date(`${date}T${end_time}`).toISOString().slice(0, 19).replace('T', ' ');
+            const diffMs = new Date(`${date}T${end_time}`) - new Date(`${date}T${start_time}`);
+            calculatedDuration = Math.floor(diffMs / (1000 * 60)); // Convert to minutes
+        } else if (duration) {
+            const startDate = new Date(`${date}T${start_time}`);
+            const endDate = new Date(startDate.getTime() + duration * 60000);
+            end_datetime = endDate.toISOString().slice(0, 19).replace('T', ' ');
+            calculatedDuration = duration;
         }
 
         // Insert the report
         const result = await db.query(
             'INSERT INTO reports (start_datetime, end_datetime, duration, type, description) VALUES (?, ?, ?, ?, ?)',
-            [
-                start_datetime,
-                end_datetime,
-                calculatedDuration,
-                type,
-                description || null
-            ]
+            [start_datetime, end_datetime, calculatedDuration, type, description]
         );
         
         // Insert member assignments if any
-        if (members && Array.isArray(members) && members.length > 0) {
-            const placeholders = members.map(() => '(?, ?)').join(', ');
-            const values = members.reduce((acc, memberId) => {
-                acc.push(result.insertId, memberId);
-                return acc;
-            }, []);
-
+        if (members && members.length > 0) {
+            const values = members.map(memberId => [result.insertId, memberId]);
             await db.query(
-                `INSERT INTO report_members (report_id, member_id) VALUES ${placeholders}`,
-                values
+                'INSERT INTO report_members (report_id, member_id) VALUES ?',
+                [values]
             );
         }
         
@@ -88,71 +77,58 @@ router.post('/', async (req, res) => {
             end_datetime,
             duration: calculatedDuration,
             type,
-            description: description || null,
+            description,
             members: members || []
         });
     } catch (error) {
-        console.error('Detailed error:', error);
-        res.status(500).json({ message: 'Error creating report', error: error.message });
+        console.error('Error creating report:', error);
+        res.status(500).json({ message: 'Error creating report' });
     }
 });
 
+// Update report
 router.put('/:id', async (req, res) => {
     try {
         const { date, start_time, end_time, duration, type, description, members } = req.body;
         
-        // Combine date and time into datetime format
-        const start_datetime = `${date} ${start_time}`;
-        let end_datetime = end_time ? `${date} ${end_time}` : null;
-        let calculatedDuration = duration || null;
+        const start_datetime = new Date(`${date}T${start_time}`).toISOString().slice(0, 19).replace('T', ' ');
+        let end_datetime = null;
+        let calculatedDuration = null;
 
-        if (end_time && !duration) {
-            const start = new Date(start_datetime);
-            const end = new Date(end_datetime);
-            const diff = Math.abs(end - start);
-            calculatedDuration = Math.floor(diff / (1000 * 60));
-        } else if (!end_time && duration) {
-            const start = new Date(start_datetime);
-            end_datetime = new Date(start.getTime() + duration * 60000).toISOString().slice(0, 19).replace('T', ' ');
+        if (end_time) {
+            end_datetime = new Date(`${date}T${end_time}`).toISOString().slice(0, 19).replace('T', ' ');
+            const diffMs = new Date(`${date}T${end_time}`) - new Date(`${date}T${start_time}`);
+            calculatedDuration = Math.floor(diffMs / (1000 * 60));
+        } else if (duration) {
+            const startDate = new Date(`${date}T${start_time}`);
+            const endDate = new Date(startDate.getTime() + duration * 60000);
+            end_datetime = endDate.toISOString().slice(0, 19).replace('T', ' ');
+            calculatedDuration = duration;
         }
 
-        // Update the report with null checks
         await db.query(
             'UPDATE reports SET start_datetime = ?, end_datetime = ?, duration = ?, type = ?, description = ? WHERE id = ?',
-            [
-                start_datetime || null,
-                end_datetime || null,
-                calculatedDuration || null,
-                type || null,
-                description || null,
-                req.params.id
-            ]
+            [start_datetime, end_datetime, calculatedDuration, type, description, req.params.id]
         );
-        
-        // Delete existing member assignments
+
+        // Update member assignments
         await db.query('DELETE FROM report_members WHERE report_id = ?', [req.params.id]);
         
-        // Insert new member assignments if any
         if (members && members.length > 0) {
-            const placeholders = members.map(() => '(?, ?)').join(', ');
-            const values = members.reduce((acc, memberId) => {
-                acc.push(req.params.id, memberId);
-                return acc;
-            }, []);
-
+            const values = members.map(memberId => [req.params.id, memberId]);
             await db.query(
-                `INSERT INTO report_members (report_id, member_id) VALUES ${placeholders}`,
-                values
+                'INSERT INTO report_members (report_id, member_id) VALUES ?',
+                [values]
             );
         }
-        
-        res.json({ 
+
+        res.json({
             id: req.params.id,
             start_datetime,
-            end_datetime: end_datetime || null,
-            duration: calculatedDuration || null,
+            end_datetime,
+            duration: calculatedDuration,
             type,
-            description: description || null,
+            description,
             members: members || []
         });
     } catch (error) {
