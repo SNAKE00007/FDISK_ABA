@@ -8,6 +8,18 @@ router.use(verifyToken);
 // Get all reports
 router.get('/', async (req, res) => {
     try {
+        // First check if tables exist
+        const tablesExist = await db.query(`
+            SELECT COUNT(*) as count 
+            FROM information_schema.tables 
+            WHERE table_schema = DATABASE()
+            AND table_name IN ('reports', 'report_members')
+        `);
+
+        if (tablesExist[0].count < 2) {
+            return res.json([]);  // Return empty array if tables don't exist
+        }
+
         const reports = await db.query(`
             SELECT r.*, GROUP_CONCAT(rm.member_id) as member_ids 
             FROM reports r 
@@ -21,7 +33,7 @@ router.get('/', async (req, res) => {
         })));
     } catch (error) {
         console.error('Error fetching reports:', error);
-        res.status(500).json({ message: 'Error fetching reports' });
+        res.status(500).json({ error: error.message });
     }
 });
 
