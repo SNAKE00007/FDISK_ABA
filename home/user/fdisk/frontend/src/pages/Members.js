@@ -29,12 +29,11 @@ const Members = () => {
                 throw new Error('Not authenticated');
             }
 
-            const response = await fetch('http://localhost:5000/api/members', {
+            const response = await fetch('http://10.0.0.130:5000/api/members', {  // Update URL to match your backend
                 headers: { 
-                    'Authorization': `${userData.token}`,
+                    'Authorization': userData.token,  // Remove template literal
                     'Content-Type': 'application/json'
-                },
-                credentials: 'include'
+                }
             });
 
             if (!response.ok) {
@@ -62,12 +61,11 @@ const Members = () => {
         e.preventDefault();
         try {
             const url = editingId 
-                ? `http://localhost:5000/api/members/${editingId}`
-                : 'http://localhost:5000/api/members';
+                ? `http://10.0.0.130:5000/api/members/${editingId}`
+                : 'http://10.0.0.130:5000/api/members';
                 
             const method = editingId ? 'PUT' : 'POST';
             
-            // Get the full user object from localStorage
             const userData = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
             if (!userData || !userData.token) {
                 throw new Error('Not authenticated');
@@ -77,9 +75,8 @@ const Members = () => {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `${userData.token}` // Make sure token is properly formatted
+                    'Authorization': userData.token
                 },
-                credentials: 'include',
                 body: JSON.stringify(formData)
             });
 
@@ -88,7 +85,6 @@ const Members = () => {
                 throw new Error(errorData.message || 'Failed to save member');
             }
 
-            // Refresh member list and reset form
             await fetchMembers();
             setFormData({
                 vorname: '',
