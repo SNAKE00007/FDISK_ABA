@@ -67,15 +67,10 @@ router.post('/', async (req, res) => {
         
         // Insert member assignments if any
         if (members && Array.isArray(members) && members.length > 0) {
-            const placeholders = members.map(() => '(?, ?)').join(', ');
-            const values = members.reduce((acc, memberId) => {
-                acc.push(result.insertId, memberId);
-                return acc;
-            }, []);
-
+            const values = members.map(memberId => [result.insertId, memberId]);
             await db.query(
-                `INSERT INTO report_members (report_id, member_id) VALUES ${placeholders}`,
-                values
+                'INSERT INTO report_members (report_id, member_id) VALUES ?',
+                [values]
             );
         }
         
