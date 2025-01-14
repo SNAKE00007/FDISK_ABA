@@ -15,19 +15,24 @@ router.get('/', async (req, res) => {
                    COALESCE(GROUP_CONCAT(rm.member_id), '') as member_ids
             FROM reports r 
             LEFT JOIN report_members rm ON r.id = rm.report_id 
-            GROUP BY r.id, r.start_datetime, r.end_datetime, r.duration, r.type, r.description
+            GROUP BY r.id, r.date, r.start_time, r.end_time, r.duration, r.type, r.description
         `);
         
         const formattedReports = reports.map(report => {
-            const reportDate = new Date(report.date);
+            // Format date for display in table
+            const displayDate = new Date(report.date).toLocaleDateString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+
+            // Format date for form input (YYYY-MM-DD)
+            const formDate = new Date(report.date).toISOString().split('T')[0];
+
             return {
                 ...report,
-                // Format date as dd.mm.yyyy for display
-                date: reportDate.toLocaleDateString('de-DE', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
-                }),
+                displayDate: displayDate,  // For table display
+                date: formDate,            // For form input
                 members: report.member_ids ? report.member_ids.split(',').map(Number) : []
             };
         });
@@ -135,5 +140,23 @@ router.delete('/:id', async (req, res) => {
         res.status(500).json({ message: 'Error deleting report' });
     }
 });
+
+const handleEdit = (report) => {
+    // Convert the German formatted date (dd.mm.yyyy) back to ISO format (yyyy-mm-dd)
+    const [day, month, year] = report.date.split('.');
+    const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+
+    setFormData({
+        date: isoDate, // Set the ISO formatted date
+        start_time: report.start_time,
+        end_time: report.end_time || '',
+        duration: report.duration || '',
+        type: report.type,
+        description: report.description,
+        members: report.members || []
+    });
+    setEditingReport(report);
+    setShowForm(true);
+};
 
 module.exports = router;
