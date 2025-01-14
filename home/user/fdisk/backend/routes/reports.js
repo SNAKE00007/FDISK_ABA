@@ -8,23 +8,44 @@ router.use(verifyToken);
 // Get all reports
 router.get('/', async (req, res) => {
     try {
+        // Simplified query to debug the issue
         const reports = await db.query(`
-            SELECT r.*, 
+            SELECT r.id, 
+                   r.start_datetime,
+                   r.end_datetime,
+                   r.duration,
+                   r.type,
+                   r.description,
                    COALESCE(GROUP_CONCAT(rm.member_id), '') as member_ids
             FROM reports r 
             LEFT JOIN report_members rm ON r.id = rm.report_id 
-            GROUP BY r.id, r.start_datetime, r.end_datetime, r.duration, r.type, r.description
+            GROUP BY r.id
         `);
         
+        // Add debug logging
+        console.log('Raw reports:', reports);
+        
         const formattedReports = reports.map(report => ({
-            ...report,
+            id: report.id,
+            start_datetime: report.start_datetime,
+            end_datetime: report.end_datetime,
+            duration: report.duration,
+            type: report.type,
+            description: report.description,
             members: report.member_ids ? report.member_ids.split(',').map(Number) : []
         }));
 
-        res.json(formattedReports);
+        // Add debug logging
+        console.log('Formatted reports:', formattedReports);
+        
+        return res.json(formattedReports);
     } catch (error) {
-        console.error('Error fetching reports:', error);
-        res.status(500).json({ message: 'Error fetching reports' });
+        console.error('Detailed error:', error);
+        return res.status(500).json({ 
+            message: 'Error fetching reports',
+            error: error.message,
+            stack: error.stack
+        });
     }
 });
 
