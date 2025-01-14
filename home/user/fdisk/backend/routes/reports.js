@@ -70,4 +70,53 @@ router.post('/', async (req, res) => {
     }
 });
 
+// Update report
+router.put('/:id', async (req, res) => {
+    try {
+        const { date, time, type, description, members } = req.body;
+        
+        // Update the report
+        await db.query(
+            'UPDATE reports SET date = ?, time = ?, type = ?, description = ? WHERE id = ?',
+            [date, time, type, description, req.params.id]
+        );
+        
+        // Delete existing member assignments
+        await db.query('DELETE FROM report_members WHERE report_id = ?', [req.params.id]);
+        
+        // Insert new member assignments
+        if (members && members.length > 0) {
+            const values = members.map(memberId => [req.params.id, memberId]);
+            await db.query(
+                'INSERT INTO report_members (report_id, member_id) VALUES ?',
+                [values]
+            );
+        }
+        
+        res.json({ 
+            id: req.params.id,
+            date,
+            time,
+            type,
+            description,
+            members 
+        });
+    } catch (error) {
+        console.error('Error updating report:', error);
+        res.status(500).json({ message: 'Error updating report' });
+    }
+});
+
+// Delete report
+router.delete('/:id', async (req, res) => {
+    try {
+        await db.query('DELETE FROM report_members WHERE report_id = ?', [req.params.id]);
+        await db.query('DELETE FROM reports WHERE id = ?', [req.params.id]);
+        res.json({ message: 'Report deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting report:', error);
+        res.status(500).json({ message: 'Error deleting report' });
+    }
+});
+
 module.exports = router;

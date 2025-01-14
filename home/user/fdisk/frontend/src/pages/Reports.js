@@ -12,6 +12,7 @@ const Reports = () => {
         members: [],
         description: ''
     });
+    const [editingReport, setEditingReport] = useState(null);
 
     useEffect(() => {
         fetchReports();
@@ -68,8 +69,12 @@ const Reports = () => {
                 throw new Error('Not authenticated');
             }
 
-            const response = await fetch('http://10.0.0.130:5000/api/reports', {
-                method: 'POST',
+            const url = editingReport 
+                ? `http://10.0.0.130:5000/api/reports/${editingReport.id}`
+                : 'http://10.0.0.130:5000/api/reports';
+
+            const response = await fetch(url, {
+                method: editingReport ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': userData.token
@@ -78,7 +83,7 @@ const Reports = () => {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to create report');
+                throw new Error(editingReport ? 'Failed to update report' : 'Failed to create report');
             }
 
             await fetchReports();
@@ -89,9 +94,51 @@ const Reports = () => {
                 members: [],
                 description: ''
             });
+            setEditingReport(null);
             setShowForm(false);
         } catch (error) {
-            console.error('Error creating report:', error);
+            console.error('Error saving report:', error);
+            alert(error.message);
+        }
+    };
+
+    const handleEdit = (report) => {
+        setEditingReport(report);
+        setFormData({
+            date: report.date,
+            time: report.time,
+            type: report.type,
+            description: report.description,
+            members: report.members || []
+        });
+        setShowForm(true);
+    };
+
+    const handleDelete = async (reportId) => {
+        if (!window.confirm('Are you sure you want to delete this report?')) {
+            return;
+        }
+
+        try {
+            const userData = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+            if (!userData || !userData.token) {
+                throw new Error('Not authenticated');
+            }
+
+            const response = await fetch(`http://10.0.0.130:5000/api/reports/${reportId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': userData.token
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete report');
+            }
+
+            await fetchReports();
+        } catch (error) {
+            console.error('Error deleting report:', error);
             alert(error.message);
         }
     };
@@ -105,7 +152,7 @@ const Reports = () => {
 
             {showForm && (
                 <form onSubmit={handleSubmit} className="report-form">
-                    <h2>New Activity Report</h2>
+                    <h2>{editingReport ? 'Edit Report' : 'New Activity Report'}</h2>
                     <div className="form-group">
                         <label>Date:</label>
                         <input
@@ -169,8 +216,20 @@ const Reports = () => {
                         </div>
                     </div>
                     <div className="form-actions">
-                        <button type="submit">Create Report</button>
-                        <button type="button" onClick={() => setShowForm(false)}>Cancel</button>
+                        <button type="submit">
+                            {editingReport ? 'Update Report' : 'Create Report'}
+                        </button>
+                        <button type="button" onClick={() => {
+                            setShowForm(false);
+                            setEditingReport(null);
+                            setFormData({
+                                date: '',
+                                time: '',
+                                type: '',
+                                members: [],
+                                description: ''
+                            });
+                        }}>Cancel</button>
                     </div>
                 </form>
             )}
@@ -184,6 +243,7 @@ const Reports = () => {
                             <th>Type</th>
                             <th>Description</th>
                             <th>Members Present</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -198,6 +258,13 @@ const Reports = () => {
                                         .filter(member => report.members.includes(member.id))
                                         .map(member => `${member.dienstgrad} ${member.vorname} ${member.nachname}`)
                                         .join(', ')}
+                                </td>
+                                <td>
+                                    <button onClick={() => handleEdit(report)}>Edit</button>
+                                    <button 
+                                        onClick={() => handleDelete(report.id)}
+                                        className="delete-button"
+                                    >Delete</button>
                                 </td>
                             </tr>
                         ))}
