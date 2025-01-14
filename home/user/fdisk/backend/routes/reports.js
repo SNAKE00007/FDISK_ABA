@@ -10,10 +10,11 @@ router.get('/', async (req, res) => {
     try {
         const reports = await db.query(`
             SELECT r.*, 
-                   COALESCE(GROUP_CONCAT(rm.member_id), '') as member_ids
+                   COALESCE(GROUP_CONCAT(rm.member_id), '') as member_ids,
+                   r.description 
             FROM reports r 
             LEFT JOIN report_members rm ON r.id = rm.report_id 
-            GROUP BY r.id, r.start_datetime, r.end_datetime, r.duration, r.type, r.description
+            GROUP BY r.id, r.date, r.start_time, r.end_time, r.duration, r.type, r.description
         `);
         
         const formattedReports = reports.map(report => ({
@@ -32,39 +33,12 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const { date, start_time, end_time, duration, type, description, members } = req.body;
-        
-        // Ensure required fields are present
-        if (!date || !start_time || !type) {
-            return res.status(400).json({ message: 'Missing required fields' });
-        }
+        console.log('Creating report with:', { date, start_time, end_time, duration, type, description, members });
 
-        // Combine date and time into datetime format
-        const start_datetime = `${date} ${start_time}`;
-        let end_datetime = end_time ? `${date} ${end_time}` : null;
-        let calculatedDuration = duration || null;
-
-        if (end_time && !duration) {
-            // Calculate duration if end_time is provided
-            const start = new Date(start_datetime);
-            const end = new Date(end_datetime);
-            const diff = Math.abs(end - start);
-            calculatedDuration = Math.floor(diff / (1000 * 60));
-        } else if (!end_time && duration) {
-            // Calculate end_time if duration is provided
-            const start = new Date(start_datetime);
-            end_datetime = new Date(start.getTime() + duration * 60000).toISOString().slice(0, 19).replace('T', ' ');
-        }
-
-        // Insert the report with null checks
+        // Insert the report
         const result = await db.query(
-            'INSERT INTO reports (start_datetime, end_datetime, duration, type, description) VALUES (?, ?, ?, ?, ?)',
-            [
-                start_datetime,
-                end_datetime || null,
-                calculatedDuration || null,
-                type,
-                description || null
-            ]
+            'INSERT INTO reports (date, start_time, end_time, duration, type, description) VALUES (?, ?, ?, ?, ?, ?)',
+            [date, start_time, end_time, duration, type, description]
         );
         
         // Insert member assignments if any
@@ -83,41 +57,28 @@ router.post('/', async (req, res) => {
         
         res.status(201).json({ 
             id: result.insertId,
-            start_datetime,
-            end_datetime: end_datetime || null,
-            duration: calculatedDuration || null,
+            date,
+            start_time,
+            end_time,
+            duration,
             type,
-            description: description || null,
-            members: members || [] 
+            description,
+            members 
         });
     } catch (error) {
         console.error('Error creating report:', error);
-        res.status(500).json({ message: 'Error creating report', error: error.message });
+        res.status(500).json({ message: 'Error creating report' });
     }
 });
 
 router.put('/:id', async (req, res) => {
     try {
-        const { start_datetime, end_datetime, duration, type, description, members } = req.body;
+        const { date, start_time, end_time, duration, type, description, members } = req.body;
         
-        // Calculate missing value (either end_datetime or duration)
-        let calculatedEndDatetime = end_datetime;
-        let calculatedDuration = duration;
-
-        if (end_datetime && !duration) {
-            const start = new Date(start_datetime);
-            const end = new Date(end_datetime);
-            const diff = Math.abs(end - start);
-            calculatedDuration = Math.floor(diff / (1000 * 60));
-        } else if (!end_datetime && duration) {
-            const start = new Date(start_datetime);
-            calculatedEndDatetime = new Date(start.getTime() + duration * 60000);
-        }
-
         // Update the report
         await db.query(
-            'UPDATE reports SET start_datetime = ?, end_datetime = ?, duration = ?, type = ?, description = ? WHERE id = ?',
-            [start_datetime, calculatedEndDatetime, calculatedDuration, type, description, req.params.id]
+            'UPDATE reports SET date = ?, start_time = ?, end_time = ?, duration = ?, type = ?, description = ? WHERE id = ?',
+            [date, start_time, end_time, duration, type, description, req.params.id]
         );
         
         // Delete existing member assignments
@@ -139,9 +100,10 @@ router.put('/:id', async (req, res) => {
         
         res.json({ 
             id: req.params.id,
-            start_datetime,
-            end_datetime: calculatedEndDatetime,
-            duration: calculatedDuration,
+            date,
+            start_time,
+            end_time,
+            duration,
             type,
             description,
             members
