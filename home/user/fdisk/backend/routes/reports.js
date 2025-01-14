@@ -10,11 +10,10 @@ router.get('/', async (req, res) => {
     try {
         const reports = await db.query(`
             SELECT r.*, 
-                   COALESCE(GROUP_CONCAT(rm.member_id), '') as member_ids,
-                   r.description 
+                   COALESCE(GROUP_CONCAT(rm.member_id), '') as member_ids
             FROM reports r 
             LEFT JOIN report_members rm ON r.id = rm.report_id 
-            GROUP BY r.id, r.date, r.start_time, r.end_time, r.duration, r.type, r.description
+            GROUP BY r.id, r.start_datetime, r.end_datetime, r.duration, r.type, r.description
         `);
         
         const formattedReports = reports.map(report => ({
