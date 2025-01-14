@@ -7,7 +7,9 @@ const Reports = () => {
     const [showForm, setShowForm] = useState(false);
     const [formData, setFormData] = useState({
         date: '',
-        time: '',
+        start_time: '',
+        end_time: '',
+        duration: '',
         type: '',
         members: [],
         description: ''
@@ -89,7 +91,9 @@ const Reports = () => {
             await fetchReports();
             setFormData({
                 date: '',
-                time: '',
+                start_time: '',
+                end_time: '',
+                duration: '',
                 type: '',
                 members: [],
                 description: ''
@@ -106,7 +110,9 @@ const Reports = () => {
         setEditingReport(report);
         setFormData({
             date: report.date,
-            time: report.time,
+            start_time: report.start_time,
+            end_time: report.end_time,
+            duration: report.duration,
             type: report.type,
             description: report.description,
             members: report.members || []
@@ -163,12 +169,29 @@ const Reports = () => {
                         />
                     </div>
                     <div className="form-group">
-                        <label>Time:</label>
+                        <label>Start Time:</label>
                         <input
                             type="time"
-                            value={formData.time}
-                            onChange={(e) => setFormData({...formData, time: e.target.value})}
+                            value={formData.start_time}
+                            onChange={(e) => setFormData({...formData, start_time: e.target.value})}
                             required
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>End Time (optional):</label>
+                        <input
+                            type="time"
+                            value={formData.end_time || ''}
+                            onChange={(e) => setFormData({...formData, end_time: e.target.value})}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Duration (optional):</label>
+                        <input
+                            type="text"
+                            value={formData.duration || ''}
+                            onChange={(e) => setFormData({...formData, duration: e.target.value})}
+                            placeholder="e.g., 2 hours"
                         />
                     </div>
                     <div className="form-group">
@@ -224,7 +247,9 @@ const Reports = () => {
                             setEditingReport(null);
                             setFormData({
                                 date: '',
-                                time: '',
+                                start_time: '',
+                                end_time: '',
+                                duration: '',
                                 type: '',
                                 members: [],
                                 description: ''
@@ -239,7 +264,9 @@ const Reports = () => {
                     <thead>
                         <tr>
                             <th>Date</th>
-                            <th>Time</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Duration</th>
                             <th>Type</th>
                             <th>Description</th>
                             <th>Members Present</th>
@@ -254,7 +281,9 @@ const Reports = () => {
                                 style={{ cursor: 'pointer' }}
                             >
                                 <td>{report.date}</td>
-                                <td>{report.time}</td>
+                                <td>{report.start_time}</td>
+                                <td>{report.end_time || '-'}</td>
+                                <td>{report.duration || '-'}</td>
                                 <td>{report.type}</td>
                                 <td>{report.description}</td>
                                 <td>

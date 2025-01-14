@@ -32,18 +32,17 @@ router.get('/', async (req, res) => {
 // Create report
 router.post('/', async (req, res) => {
     try {
-        const { date, time, type, description, members } = req.body;
-        console.log('Creating report with:', { date, time, type, description, members });
+        const { date, start_time, end_time, duration, type, description, members } = req.body;
+        console.log('Creating report with:', { date, start_time, end_time, duration, type, description, members });
 
         // Insert the report
         const result = await db.query(
-            'INSERT INTO reports (date, time, type, description) VALUES (?, ?, ?, ?)',
-            [date, time, type, description]
+            'INSERT INTO reports (date, start_time, end_time, duration, type, description) VALUES (?, ?, ?, ?, ?, ?)',
+            [date, start_time, end_time, duration, type, description]
         );
         
         // Insert member assignments if any
         if (members && members.length > 0) {
-            // Create the values string for multiple inserts
             const placeholders = members.map(() => '(?, ?)').join(', ');
             const values = members.reduce((acc, memberId) => {
                 acc.push(result.insertId, memberId);
@@ -59,7 +58,9 @@ router.post('/', async (req, res) => {
         res.status(201).json({ 
             id: result.insertId,
             date,
-            time,
+            start_time,
+            end_time,
+            duration,
             type,
             description,
             members 
@@ -72,12 +73,12 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
     try {
-        const { date, time, type, description, members } = req.body;
+        const { date, start_time, end_time, duration, type, description, members } = req.body;
         
         // Update the report
         await db.query(
-            'UPDATE reports SET date = ?, time = ?, type = ?, description = ? WHERE id = ?',
-            [date, time, type, description, req.params.id]
+            'UPDATE reports SET date = ?, start_time = ?, end_time = ?, duration = ?, type = ?, description = ? WHERE id = ?',
+            [date, start_time, end_time, duration, type, description, req.params.id]
         );
         
         // Delete existing member assignments
@@ -100,7 +101,9 @@ router.put('/:id', async (req, res) => {
         res.json({ 
             id: req.params.id,
             date,
-            time,
+            start_time,
+            end_time,
+            duration,
             type,
             description,
             members
