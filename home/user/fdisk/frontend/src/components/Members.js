@@ -54,33 +54,40 @@ const Members = () => {
                 
             const method = editingId ? 'PUT' : 'POST';
             
+            const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+            if (!user || !user.token) {
+                throw new Error('Not authenticated');
+            }
+
             const response = await fetch(url, {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('token')
+                    'Authorization': user.token
                 },
                 body: JSON.stringify(formData)
             });
 
-            if (response.ok) {
-                fetchMembers();
-                setFormData({
-                    vorname: '',
-                    nachname: '',
-                    dienstgrad: '',
-                    geburtsdatum: '',
-                    eintrittsdatum: '',
-                    telefonnummer: '',
-                    status: 'active'
-                });
-                setEditingId(null);
-                setShowForm(false);
-                setSelectedMember(null);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to save member');
             }
+
+            await fetchMembers();
+            setFormData({
+                vorname: '',
+                nachname: '',
+                dienstgrad: '',
+                geburtsdatum: '',
+                eintrittsdatum: '',
+                telefonnummer: '',
+                status: 'active'
+            });
+            setEditingId(null);
+            setShowForm(false);
         } catch (error) {
             console.error('Error saving member:', error);
-            alert('Failed to save member: ' + error.message);
+            alert(error.message);
         }
     };
 
