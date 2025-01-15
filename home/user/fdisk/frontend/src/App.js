@@ -1,27 +1,30 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Users from './pages/Users';
+import Equipment from './pages/Equipment';
+import Reports from './pages/Reports';
+import Members from './pages/Members';
 import PrivateRoute from './components/PrivateRoute';
-import Login from './components/Login';
-import Dashboard from './components/Dashboard';
-import DepartmentHeader from './components/DepartmentHeader';
+import Navbar from './components/Navbar';
 
-const App = () => {
-    return (
-        <AuthProvider>
-            <BrowserRouter>
-                <Routes>
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/" element={
-                        <PrivateRoute>
-                            <DepartmentHeader />
-                            <Dashboard />
-                        </PrivateRoute>
-                    } />
-                </Routes>
-            </BrowserRouter>
-        </AuthProvider>
-    );
-};
+function App() {
+  return (
+    <Router>
+      <div className="App">
+        <Navbar />
+        <Switch>
+          <Route exact path="/" component={Login} />
+          <PrivateRoute path="/dashboard" component={Dashboard} />
+          <PrivateRoute path="/users" component={Users} />
+          <PrivateRoute path="/equipment" component={Equipment} />
+          <PrivateRoute path="/reports" component={Reports} />
+          <PrivateRoute path="/members" component={Members} />
+        </Switch>
+      </div>
+    </Router>
+  );
+}
 
 export default App;

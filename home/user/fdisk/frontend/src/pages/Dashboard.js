@@ -1,50 +1,45 @@
-import React, { useEffect, useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import api from '../utils/api';
+import React, { useState, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
+import '../styles/Dashboard.css';
 
 const Dashboard = () => {
-    const { auth } = useAuth();
-    const [reports, setReports] = useState([]);
-    const [members, setMembers] = useState([]);
-    const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const history = useHistory();
 
-    useEffect(() => {
-        const fetchDepartmentData = async () => {
-            try {
-                const [reportsRes, membersRes] = await Promise.all([
-                    api.get('/reports'),
-                    api.get('/members')
-                ]);
-                setReports(reportsRes.data);
-                setMembers(membersRes.data);
-            } catch (error) {
-                console.error('Error fetching department data:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem('user'));
+    if (!userData) {
+      history.push('/');
+      return;
+    }
+    setUser(userData.user);
+  }, [history]);
 
-        fetchDepartmentData();
-    }, []);
+  if (!user) return <div>Loading...</div>;
 
-    if (loading) return <div>Loading...</div>;
-
-    return (
-        <div className="dashboard">
-            <h2>Welcome to {auth.user.department_name}</h2>
-            <div className="dashboard-stats">
-                <div className="stat-card">
-                    <h3>Total Reports</h3>
-                    <p>{reports.length}</p>
-                </div>
-                <div className="stat-card">
-                    <h3>Active Members</h3>
-                    <p>{members.filter(m => m.status === 'active').length}</p>
-                </div>
-            </div>
-            {/* Additional dashboard content */}
+  return (
+    <div className="dashboard">
+      <div className="dashboard-header">
+        <h1>Dashboard</h1>
+        <div className="user-info">
+          <p>Welcome, {user.member.vorname} {user.member.nachname}</p>
+          <p>Role: {user.role}</p>
+          <p>Rank: {user.member.dienstgrad}</p>
         </div>
-    );
+      </div>
+
+      <div className="dashboard-content">
+        <div className="quick-actions">
+          <h2>Quick Actions</h2>
+          <button onClick={() => history.push('/members/list')}>Manage Members</button>
+          <button onClick={() => history.push('/members/new')}>Create Member</button>
+          <button onClick={() => history.push('/users')}>Manage Users</button>
+          <button onClick={() => history.push('/equipment')}>Equipment</button>
+          <button onClick={() => history.push('/reports')}>Reports</button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Dashboard;
