@@ -8,6 +8,7 @@ exports.verifyToken = (req, res, next) => {
         if (err) return res.status(500).send('Failed to authenticate token');
         req.userId = decoded.id;
         req.userRole = decoded.role;
+        req.departmentId = decoded.department_id; // Add department_id
         next();
     });
 };

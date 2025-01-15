@@ -9,9 +9,10 @@ exports.login = async (req, res) => {
         console.log('Login attempt:', username);
 
         const results = await db.query(`
-            SELECT u.*, m.* 
+            SELECT u.*, m.*, d.name as department_name 
             FROM users u 
             LEFT JOIN members m ON u.member_id = m.id 
+            LEFT JOIN departments d ON u.department_id = d.id
             WHERE u.username = ?
         `, [username]);
 
@@ -31,9 +32,14 @@ exports.login = async (req, res) => {
         }
 
         const token = jwt.sign(
-            { id: user.id, role: user.role, member_id: user.member_id },
+            { 
+                id: user.id, 
+                role: user.role, 
+                department_id: user.department_id,
+                member_id: user.member_id 
+            },
             process.env.JWT_SECRET,
-            { expiresIn: '1h' }
+            { expiresIn: '24h' }
         );
 
         res.json({
@@ -42,6 +48,8 @@ exports.login = async (req, res) => {
                 id: user.id,
                 username: user.username,
                 role: user.role,
+                department_id: user.department_id,
+                department_name: user.department_name,
                 member: {
                     id: user.member_id,
                     vorname: user.vorname,
