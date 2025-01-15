@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
             FROM reports r 
             LEFT JOIN report_members rm ON r.id = rm.report_id 
             WHERE r.department_id = ?
-            GROUP BY r.id, r.date, r.start_time, r.end_time, r.duration, r.type, r.description
+            GROUP BY r.id
         `, [req.departmentId]);
         
         const formattedReports = reports.map(report => ({
