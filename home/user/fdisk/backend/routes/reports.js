@@ -5,9 +5,6 @@ const { verifyToken } = require('../middleware/auth');
 
 router.use(verifyToken);
 
-
-//test
-// Get all reports
 router.get('/', async (req, res) => {
     try {
         const reports = await db.query(`
@@ -15,63 +12,46 @@ router.get('/', async (req, res) => {
                    COALESCE(GROUP_CONCAT(rm.member_id), '') as member_ids
             FROM reports r 
             LEFT JOIN report_members rm ON r.id = rm.report_id 
+            WHERE r.department_id = ?
             GROUP BY r.id, r.date, r.start_time, r.end_time, r.duration, r.type, r.description
-        `);
+        `, [req.departmentId]);
         
         const formattedReports = reports.map(report => {
-            // Format date for display in table
-            const displayDate = new Date(report.date).toLocaleDateString('de-DE', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-            });
-
-            // Format date for form input (YYYY-MM-DD)
-            const formDate = new Date(report.date).toISOString().split('T')[0];
-
+            const reportDate = new Date(report.date);
             return {
                 ...report,
-                displayDate: displayDate,  // For table display
-                date: formDate,            // For form input
+                date: reportDate.toLocaleDateString('de-DE'),
                 members: report.member_ids ? report.member_ids.split(',').map(Number) : []
             };
         });
 
         res.json(formattedReports);
     } catch (error) {
-        console.error('Error fetching reports:', error);
+        console.error('Error:', error);
         res.status(500).json({ message: 'Error fetching reports' });
     }
 });
 
-// Create report
 router.post('/', async (req, res) => {
     try {
         const { date, start_time, end_time, duration, type, description, members } = req.body;
-        console.log('Creating report with:', { date, start_time, end_time, duration, type, description, members });
 
-        // Insert the report
         const result = await db.query(
-            'INSERT INTO reports (date, start_time, end_time, duration, type, description) VALUES (?, ?, ?, ?, ?, ?)',
-            [date, start_time, end_time, duration, type, description]
+            'INSERT INTO reports (department_id, date, start_time, end_time, duration, type, description) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [req.departmentId, date, start_time, end_time, duration, type, description]
         );
         
-        // Insert member assignments if any
         if (members && members.length > 0) {
-            const placeholders = members.map(() => '(?, ?)').join(', ');
-            const values = members.reduce((acc, memberId) => {
-                acc.push(result.insertId, memberId);
-                return acc;
-            }, []);
-
+            const values = members.map(memberId => [result.insertId, memberId]);
             await db.query(
-                `INSERT INTO report_members (report_id, member_id) VALUES ${placeholders}`,
-                values
+                'INSERT INTO report_members (report_id, member_id) VALUES ?',
+                [values]
             );
         }
         
         res.status(201).json({ 
             id: result.insertId,
+            department_id: req.departmentId,
             date,
             start_time,
             end_time,
@@ -81,82 +61,80 @@ router.post('/', async (req, res) => {
             members 
         });
     } catch (error) {
-        console.error('Error creating report:', error);
+        console.error('Error:', error);
         res.status(500).json({ message: 'Error creating report' });
     }
 });
+
+// ... Continue with PUT and DELETE endpoints?
+// ...continuing with PUT and DELETE endpoints
 
 router.put('/:id', async (req, res) => {
     try {
         const { date, start_time, end_time, duration, type, description, members } = req.body;
         
-        // Update the report
+        // Verify department ownership
+        const [report] = await db.query(
+            'SELECT * FROM reports WHERE id = ? AND department_id = ?',
+            [req.params.id, req.departmentId]
+        );
+
+        if (!report) {
+            return res.status(404).json({ message: 'Report not found or access denied' });
+        }
+
         await db.query(
-            'UPDATE reports SET date = ?, start_time = ?, end_time = ?, duration = ?, type = ?, description = ? WHERE id = ?',
-            [date, start_time, end_time, duration, type, description, req.params.id]
+            'UPDATE reports SET date = ?, start_time = ?, end_time = ?, duration = ?, type = ?, description = ? WHERE id = ? AND department_id = ?',
+            [date, start_time, end_time, duration, type, description, req.params.id, req.departmentId]
         );
         
-        // Delete existing member assignments
         await db.query('DELETE FROM report_members WHERE report_id = ?', [req.params.id]);
         
-        // Insert new member assignments if any
         if (members && members.length > 0) {
-            const placeholders = members.map(() => '(?, ?)').join(', ');
-            const values = members.reduce((acc, memberId) => {
-                acc.push(req.params.id, memberId);
-                return acc;
-            }, []);
-
+            const values = members.map(memberId => [req.params.id, memberId]);
             await db.query(
-                `INSERT INTO report_members (report_id, member_id) VALUES ${placeholders}`,
-                values
+                'INSERT INTO report_members (report_id, member_id) VALUES ?',
+                [values]
             );
         }
         
         res.json({ 
             id: req.params.id,
+            department_id: req.departmentId,
             date,
             start_time,
             end_time,
             duration,
             type,
             description,
-            members
+            members 
         });
     } catch (error) {
-        console.error('Error updating report:', error);
-        res.status(500).json({ message: 'Error updating report', error: error.message });
+        console.error('Error:', error);
+        res.status(500).json({ message: 'Error updating report' });
     }
 });
 
-// Delete report
 router.delete('/:id', async (req, res) => {
     try {
+        // Verify department ownership
+        const [report] = await db.query(
+            'SELECT * FROM reports WHERE id = ? AND department_id = ?',
+            [req.params.id, req.departmentId]
+        );
+
+        if (!report) {
+            return res.status(404).json({ message: 'Report not found or access denied' });
+        }
+
         await db.query('DELETE FROM report_members WHERE report_id = ?', [req.params.id]);
-        await db.query('DELETE FROM reports WHERE id = ?', [req.params.id]);
+        await db.query('DELETE FROM reports WHERE id = ? AND department_id = ?', [req.params.id, req.departmentId]);
+        
         res.json({ message: 'Report deleted successfully' });
     } catch (error) {
-        console.error('Error deleting report:', error);
+        console.error('Error:', error);
         res.status(500).json({ message: 'Error deleting report' });
     }
 });
-
-const handleEdit = (report) => {
-    // Convert the German formatted date (dd.mm.yyyy) back to ISO format (yyyy-mm-dd)
-    const [day, month, year] = report.date.split('.');
-    const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-
-    setFormData({
-        date: isoDate, // Set the ISO formatted date
-        start_time: report.start_time,
-        end_time: report.end_time || '',
-        duration: report.duration || '',
-        type: report.type,
-        description: report.description,
-        members: report.members || []
-    });
-    setEditingReport(report);
-    setShowForm(true);
-};
 
 module.exports = router;

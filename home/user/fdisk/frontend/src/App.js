@@ -1,30 +1,27 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Users from './pages/Users';
-import Equipment from './pages/Equipment';
-import Reports from './pages/Reports';
-import Members from './pages/Members';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
-import Navbar from './components/Navbar';
+import Login from './components/Login';
+import Dashboard from './components/Dashboard';
+import DepartmentHeader from './components/DepartmentHeader';
 
-function App() {
-  return (
-    <Router>
-      <div className="App">
-        <Navbar />
-        <Switch>
-          <Route exact path="/" component={Login} />
-          <PrivateRoute path="/dashboard" component={Dashboard} />
-          <PrivateRoute path="/users" component={Users} />
-          <PrivateRoute path="/equipment" component={Equipment} />
-          <PrivateRoute path="/reports" component={Reports} />
-          <PrivateRoute path="/members" component={Members} />
-        </Switch>
-      </div>
-    </Router>
-  );
-}
+const App = () => {
+    return (
+        <AuthProvider>
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/" element={
+                        <PrivateRoute>
+                            <DepartmentHeader />
+                            <Dashboard />
+                        </PrivateRoute>
+                    } />
+                </Routes>
+            </BrowserRouter>
+        </AuthProvider>
+    );
+};
 
 export default App;
