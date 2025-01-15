@@ -19,3 +19,11 @@ exports.isAdmin = (req, res, next) => {
     }
     next();
 };
+
+exports.validateDepartmentAccess = (req, res, next) => {
+    const requestedDeptId = req.params.departmentId || req.body.department_id;
+    if (requestedDeptId && requestedDeptId !== req.departmentId) {
+        return res.status(403).json({ message: 'Access denied to this department' });
+    }
+    next();
+};

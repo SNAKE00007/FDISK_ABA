@@ -15,27 +15,14 @@ router.get('/', async (req, res) => {
                    COALESCE(GROUP_CONCAT(rm.member_id), '') as member_ids
             FROM reports r 
             LEFT JOIN report_members rm ON r.id = rm.report_id 
-            GROUP BY r.id, r.date, r.start_time, r.end_time, r.duration, r.type, r.description
-        `);
+            WHERE r.department_id = ?
+            GROUP BY r.id, r.start_datetime, r.end_datetime, r.duration, r.type, r.description
+        `, [req.departmentId]);
         
-        const formattedReports = reports.map(report => {
-            // Format date for display in table
-            const displayDate = new Date(report.date).toLocaleDateString('de-DE', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-            });
-
-            // Format date for form input (YYYY-MM-DD)
-            const formDate = new Date(report.date).toISOString().split('T')[0];
-
-            return {
-                ...report,
-                displayDate: displayDate,  // For table display
-                date: formDate,            // For form input
-                members: report.member_ids ? report.member_ids.split(',').map(Number) : []
-            };
-        });
+        const formattedReports = reports.map(report => ({
+            ...report,
+            members: report.member_ids ? report.member_ids.split(',').map(Number) : []
+        }));
 
         res.json(formattedReports);
     } catch (error) {
@@ -50,10 +37,10 @@ router.post('/', async (req, res) => {
         const { date, start_time, end_time, duration, type, description, members } = req.body;
         console.log('Creating report with:', { date, start_time, end_time, duration, type, description, members });
 
-        // Insert the report
+        // Add department_id to the report
         const result = await db.query(
-            'INSERT INTO reports (date, start_time, end_time, duration, type, description) VALUES (?, ?, ?, ?, ?, ?)',
-            [date, start_time, end_time, duration, type, description]
+            'INSERT INTO reports (department_id, date, start_time, end_time, duration, type, description) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [req.departmentId, date, start_time, end_time, duration, type, description]
         );
         
         // Insert member assignments if any

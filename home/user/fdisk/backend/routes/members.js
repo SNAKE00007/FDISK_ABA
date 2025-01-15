@@ -9,7 +9,10 @@ router.use(verifyToken);
 // Get all members
 router.get('/', async (req, res) => {
     try {
-        const members = await db.query('SELECT * FROM members');
+        const members = await db.query(
+            'SELECT * FROM members WHERE department_id = ?', 
+            [req.departmentId]
+        );
         res.json(members);
     } catch (error) {
         console.error('Error fetching members:', error);
@@ -22,8 +25,8 @@ router.post('/', async (req, res) => {
     try {
         const { vorname, nachname, dienstgrad, geburtsdatum, eintrittsdatum, telefonnummer, status } = req.body;
         const result = await db.query(
-            'INSERT INTO members (vorname, nachname, dienstgrad, geburtsdatum, eintrittsdatum, telefonnummer, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [vorname, nachname, dienstgrad, geburtsdatum, eintrittsdatum, telefonnummer, status]
+            'INSERT INTO members (department_id, vorname, nachname, dienstgrad, geburtsdatum, eintrittsdatum, telefonnummer, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [req.departmentId, vorname, nachname, dienstgrad, geburtsdatum, eintrittsdatum, telefonnummer, status]
         );
         res.status(201).json({ id: result.insertId, ...req.body });
     } catch (error) {
