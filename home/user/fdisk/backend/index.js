@@ -50,12 +50,14 @@ app.use(hpp({
 // Compression
 app.use(compression());
 
-// CORS
+// CORS configuration
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:80', 'http://10.0.0.130'], // Add all your frontend URLs
+    origin: ['http://localhost:3000', 'http://10.0.0.130:3000'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Content-Range', 'X-Content-Range'],
+    maxAge: 600 // 10 minutes
 }));
 
 // Request logging
