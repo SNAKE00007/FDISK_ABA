@@ -124,6 +124,12 @@ const Members = () => {
         setShowForm(true);
     };
 
+    const formatDateForDisplay = (dateStr) => {
+        if (!dateStr) return '';
+        const [year, month, day] = dateStr.split('-');
+        return `${day}.${month}.${year}`;
+    };
+
     return (
         <>
             <Sidebar />
@@ -281,8 +287,8 @@ const Members = () => {
                                     <td>{member.dienstgrad}</td>
                                     <td>{member.vorname}</td>
                                     <td>{member.nachname}</td>
-                                    <td>{member.geburtsdatum}</td>
-                                    <td>{member.eintrittsdatum}</td>
+                                    <td>{formatDateForDisplay(member.geburtsdatum)}</td>
+                                    <td>{formatDateForDisplay(member.eintrittsdatum)}</td>
                                     <td>{member.telefonnummer}</td>
                                     <td>{member.status === 'active' ? 'Aktiv' : 'Inaktiv'}</td>
                                     <td>
