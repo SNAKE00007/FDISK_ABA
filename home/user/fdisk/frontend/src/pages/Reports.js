@@ -113,11 +113,13 @@ const Reports = () => {
     const handleEdit = (report) => {
         console.log('Report data received:', report);
         
-        // Ensure date is in YYYY-MM-DD format for the date input
+        // Ensure date is in YYYY-MM-DD format for the date input and remove seconds from times
         const formattedData = {
             ...report,
             start_date: report.start_date ? report.start_date.split('T')[0] : '',
-            end_date: report.end_date ? report.end_date.split('T')[0] : ''
+            end_date: report.end_date ? report.end_date.split('T')[0] : '',
+            start_time: report.start_time ? report.start_time.slice(0, 5) : '',
+            end_time: report.end_time ? report.end_time.slice(0, 5) : ''
         };
         
         console.log('Formatted data:', formattedData);
@@ -450,9 +452,9 @@ const Reports = () => {
                             {filteredReports.map(report => (
                                 <tr key={report.id}>
                                     <td>{formatDateForDisplay(report.start_date)}</td>
-                                    <td>{report.start_time}</td>
+                                    <td>{report.start_time ? report.start_time.slice(0, 5) : ''}</td>
                                     <td>{formatDateForDisplay(report.end_date)}</td>
-                                    <td>{report.end_time}</td>
+                                    <td>{report.end_time ? report.end_time.slice(0, 5) : ''}</td>
                                     <td>{formatDurationDisplay(report.duration)}</td>
                                     <td>{report.type}</td>
                                     <td>{report.description}</td>
