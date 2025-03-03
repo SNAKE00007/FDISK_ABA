@@ -249,23 +249,12 @@ const Members = () => {
                             >
                                 <option value="active">Aktiv</option>
                                 <option value="inactive">Inaktiv</option>
+                                <option value="reserve">Reserve</option>
                             </select>
                         </div>
                         <div className="form-actions">
-                            <button type="submit">{editingId ? 'Änderungen speichern' : 'Erstellen'}</button>
-                            <button type="button" onClick={() => {
-                                setShowForm(false);
-                                setEditingId(null);
-                                setFormData({
-                                    vorname: '',
-                                    nachname: '',
-                                    dienstgrad: '',
-                                    geburtsdatum: '',
-                                    eintrittsdatum: '',
-                                    telefonnummer: '',
-                                    status: 'active'
-                                });
-                            }}>Abbrechen</button>
+                            <button type="submit">{editingId ? 'Aktualisieren' : 'Erstellen'}</button>
+                            <button type="button" onClick={() => setShowForm(false)}>Abbrechen</button>
                         </div>
                     </form>
                 )}
@@ -279,7 +268,7 @@ const Members = () => {
                                 <th>Nachname</th>
                                 <th>Geburtsdatum</th>
                                 <th>Eintrittsdatum</th>
-                                <th>Telefon</th>
+                                <th>Telefonnummer</th>
                                 <th>Status</th>
                                 <th>Aktionen</th>
                             </tr>
@@ -293,9 +282,13 @@ const Members = () => {
                                     <td>{formatDateForDisplay(member.geburtsdatum)}</td>
                                     <td>{formatDateForDisplay(member.eintrittsdatum)}</td>
                                     <td>{member.telefonnummer}</td>
-                                    <td>{member.status === 'active' ? 'Aktiv' : 'Inaktiv'}</td>
+                                    <td>{member.status === 'active' ? 'Aktiv' : member.status === 'inactive' ? 'Inaktiv' : 'Reserve'}</td>
                                     <td>
                                         <button onClick={() => handleEdit(member)}>Bearbeiten</button>
+                                        <button 
+                                            onClick={() => handleDelete(member.id)}
+                                            className="delete-button"
+                                        >Löschen</button>
                                     </td>
                                 </tr>
                             ))}
