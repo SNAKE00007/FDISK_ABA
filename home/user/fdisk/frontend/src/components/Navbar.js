@@ -1,9 +1,12 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { isAuthenticated, logout } from '../services/auth';
 import '../styles/Navbar.css';
 
 const Navbar = () => {
-  if (!isAuthenticated()) return null;
+  const location = useLocation();
+  
+  if (!isAuthenticated() || location.pathname !== '/dashboard') return null;
 
   return (
     <nav className="top-nav">

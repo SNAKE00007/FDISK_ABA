@@ -8,6 +8,8 @@
   padding: 20px 0;
   color: white;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar-logo {
@@ -30,6 +32,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 0 16px;
+  flex: 1;
 }
 
 .nav-item {
@@ -38,6 +41,13 @@
   text-decoration: none;
   border-radius: 8px;
   transition: all 0.2s ease;
+  border: none;
+  background: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
 }
 
 .nav-item:hover {
@@ -48,6 +58,23 @@
 .nav-item.active {
   background-color: #3182ce;
   color: white;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px;
+  border-top: 1px solid #4a5568;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-footer .logout-button {
+  background-color: #e53e3e;
+}
+
+.sidebar-footer .logout-button:hover {
+  background-color: #c53030;
 }
 
 /* Add margin to main content to accommodate sidebar */

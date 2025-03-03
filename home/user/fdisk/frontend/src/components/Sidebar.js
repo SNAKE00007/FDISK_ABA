@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { logout } from '../services/auth';
 import '../styles/Sidebar.css';
 
 const Sidebar = () => {
@@ -28,6 +29,14 @@ const Sidebar = () => {
           Tätigkeitsberichte
         </Link>
       </nav>
+      <div className="sidebar-footer">
+        <Link to="/dashboard" className="nav-item">
+          Dashboard
+        </Link>
+        <button className="nav-item logout-button" onClick={logout}>
+          Abmelden
+        </button>
+      </div>
     </div>
   );
 };
