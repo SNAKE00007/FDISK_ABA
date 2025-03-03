@@ -9,10 +9,10 @@ const Navbar = () => {
     <nav>
       <ul>
         <li><Link to="/dashboard">Dashboard</Link></li>
-        <li><Link to="/users">Users</Link></li>
-        <li><Link to="/equipment">Equipment</Link></li>
-        <li><Link to="/reports">Reports</Link></li>
-        <li><button onClick={logout}>Logout</button></li>
+        <li><Link to="/users">Benutzer</Link></li>
+        <li><Link to="/equipment">Geräte</Link></li>
+        <li><Link to="/reports">Tätigkeitsberichte</Link></li>
+        <li><button onClick={logout}>Abmelden</button></li>
       </ul>
     </nav>
   );

@@ -112,7 +112,7 @@ const Members = () => {
     return (
         <div className="members-page">
             <div className="members-header">
-                <h1>Member Management</h1>
+                <h1>Mitgliederverwaltung</h1>
                 <button onClick={() => {
                     setShowForm(true);
                     setSelectedMember(null);
@@ -125,13 +125,13 @@ const Members = () => {
                         telefonnummer: '',
                         status: 'active'
                     });
-                }}>Add New Member</button>
+                }}>Neues Mitglied hinzufügen</button>
             </div>
 
             <div className="search-bar">
                 <input
                     type="text"
-                    placeholder="Search members..."
+                    placeholder="Mitglieder suchen..."
                     value={searchTerm}
                     onChange={handleSearch}
                 />
@@ -139,9 +139,9 @@ const Members = () => {
 
             {showForm && (
                 <form onSubmit={handleSubmit} className="member-form">
-                    <h2>{selectedMember ? 'Edit Member' : 'New Member'}</h2>
+                    <h2>{selectedMember ? 'Mitglied bearbeiten' : 'Neues Mitglied'}</h2>
                     <div className="form-group">
-                        <label>First Name:</label>
+                        <label>Vorname:</label>
                         <input
                             type="text"
                             value={formData.vorname}
@@ -150,7 +150,7 @@ const Members = () => {
                         />
                     </div>
                     <div className="form-group">
-                        <label>Last Name:</label>
+                        <label>Nachname:</label>
                         <input
                             type="text"
                             value={formData.nachname}
@@ -159,7 +159,7 @@ const Members = () => {
                         />
                     </div>
                     <div className="form-group">
-                        <label>Rank:</label>
+                        <label>Dienstgrad:</label>
                         <input
                             type="text"
                             value={formData.dienstgrad}
@@ -167,7 +167,7 @@ const Members = () => {
                         />
                     </div>
                     <div className="form-group">
-                        <label>Birth Date:</label>
+                        <label>Geburtsdatum:</label>
                         <input
                             type="date"
                             value={formData.geburtsdatum}
@@ -175,7 +175,7 @@ const Members = () => {
                         />
                     </div>
                     <div className="form-group">
-                        <label>Entry Date:</label>
+                        <label>Eintrittsdatum:</label>
                         <input
                             type="date"
                             value={formData.eintrittsdatum}
@@ -183,7 +183,7 @@ const Members = () => {
                         />
                     </div>
                     <div className="form-group">
-                        <label>Phone Number:</label>
+                        <label>Telefonnummer:</label>
                         <input
                             type="tel"
                             value={formData.telefonnummer}
@@ -196,13 +196,13 @@ const Members = () => {
                             value={formData.status}
                             onChange={(e) => setFormData({...formData, status: e.target.value})}
                         >
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
+                            <option value="active">Aktiv</option>
+                            <option value="inactive">Inaktiv</option>
                         </select>
                     </div>
                     <div className="form-actions">
-                        <button type="submit">{selectedMember ? 'Update' : 'Create'}</button>
-                        <button type="button" onClick={() => setShowForm(false)}>Cancel</button>
+                        <button type="submit">{selectedMember ? 'Aktualisieren' : 'Erstellen'}</button>
+                        <button type="button" onClick={() => setShowForm(false)}>Abbrechen</button>
                     </div>
                 </form>
             )}
@@ -211,14 +211,14 @@ const Members = () => {
                 <table className="members-table">
                     <thead>
                         <tr>
-                            <th>Rank</th>
-                            <th>First Name</th>
-                            <th>Last Name</th>
-                            <th>Birth Date</th>
-                            <th>Entry Date</th>
-                            <th>Phone</th>
+                            <th>Dienstgrad</th>
+                            <th>Vorname</th>
+                            <th>Nachname</th>
+                            <th>Geburtsdatum</th>
+                            <th>Eintrittsdatum</th>
+                            <th>Telefon</th>
                             <th>Status</th>
-                            <th>Actions</th>
+                            <th>Aktionen</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -230,9 +230,9 @@ const Members = () => {
                                 <td>{member.geburtsdatum}</td>
                                 <td>{member.eintrittsdatum}</td>
                                 <td>{member.telefonnummer}</td>
-                                <td>{member.status}</td>
+                                <td>{member.status === 'active' ? 'Aktiv' : 'Inaktiv'}</td>
                                 <td>
-                                    <button onClick={() => handleEdit(member)}>Edit</button>
+                                    <button onClick={() => handleEdit(member)}>Bearbeiten</button>
                                 </td>
                             </tr>
                         ))}

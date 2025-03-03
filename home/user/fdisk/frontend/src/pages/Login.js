@@ -17,17 +17,17 @@ const Login = () => {
       history.push('/dashboard');
     } catch (err) {
       console.error('Login failed:', err);
-      setError(err.response?.data?.message || 'Connection failed');
+      setError(err.response?.data?.message || 'Verbindung fehlgeschlagen');
     }
   };
 
   return (
     <div>
-      <h2>Login</h2>
+      <h2>Anmelden</h2>
       {error && <p>{error}</p>}
       <form onSubmit={handleSubmit}>
         <div>
-          <label>Username:</label>
+          <label>Benutzername:</label>
           <input
             type="text"
             value={username}
@@ -36,7 +36,7 @@ const Login = () => {
           />
         </div>
         <div>
-          <label>Password:</label>
+          <label>Passwort:</label>
           <input
             type="password"
             value={password}
@@ -44,7 +44,7 @@ const Login = () => {
             required
           />
         </div>
-        <button type="submit">Login</button>
+        <button type="submit">Anmelden</button>
       </form>
     </div>
   );
