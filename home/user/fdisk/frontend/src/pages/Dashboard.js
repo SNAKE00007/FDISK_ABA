@@ -20,11 +20,13 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h1>Dashboard</h1>
-        <div className="user-info">
-          <p>Willkommen, {user.member.vorname} {user.member.nachname}</p>
-          <p>Rolle: {user.role}</p>
-          <p>Dienstgrad: {user.member.dienstgrad}</p>
+        <div>
+          <h1>Dashboard</h1>
+          <div className="user-info">
+            <p>Willkommen, {user.member.vorname} {user.member.nachname}</p>
+            <p>Rolle: {user.role}</p>
+            <p>Dienstgrad: {user.member.dienstgrad}</p>
+          </div>
         </div>
       </div>
 
@@ -32,7 +34,6 @@ const Dashboard = () => {
         <div className="quick-actions">
           <h2>Schnellzugriff</h2>
           <button onClick={() => history.push('/members/list')}>Mitglieder verwalten</button>
-          <button onClick={() => history.push('/members/new')}>Mitglied erstellen</button>
           <button onClick={() => history.push('/users')}>Benutzer verwalten</button>
           <button onClick={() => history.push('/equipment')}>Geräte</button>
           <button onClick={() => history.push('/reports')}>Tätigkeitsberichte</button>
