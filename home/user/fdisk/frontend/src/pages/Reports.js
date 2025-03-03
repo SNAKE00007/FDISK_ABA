@@ -390,11 +390,11 @@ const Reports = () => {
                                 required
                             >
                                 <option value="">Typ auswählen</option>
-                                <option value="exercise">Übung</option>
-                                <option value="emergency">Einsatz</option>
-                                <option value="training">Schulung</option>
-                                <option value="maintenance">Wartung</option>
-                                <option value="other">Sonstiges</option>
+                                <option value="Übung">Übung</option>
+                                <option value="Einsatz">Einsatz</option>
+                                <option value="Schulung">Schulung</option>
+                                <option value="Wartung">Wartung</option>
+                                <option value="Sonstiges">Sonstiges</option>
                             </select>
                         </div>
                         <div className="form-group">
