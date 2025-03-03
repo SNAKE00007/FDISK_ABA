@@ -163,11 +163,36 @@ const Members = () => {
                         </div>
                         <div className="form-group">
                             <label>Dienstgrad:</label>
-                            <input
-                                type="text"
+                            <select
                                 value={formData.dienstgrad}
                                 onChange={(e) => setFormData({...formData, dienstgrad: e.target.value})}
-                            />
+                                required
+                            >
+                                <option value="">Dienstgrad auswählen</option>
+                                <option value="JFM">JFM</option>
+                                <option value="PFM">PFM</option>
+                                <option value="FM">FM</option>
+                                <option value="OFM">OFM</option>
+                                <option value="HFM">HFM</option>
+                                <option value="LM">LM</option>
+                                <option value="OLM">OLM</option>
+                                <option value="HLM">HLM</option>
+                                <option value="BM">BM</option>
+                                <option value="OBM">OBM</option>
+                                <option value="HBM">HBM</option>
+                                <option value="LM d. V.">LM d. V.</option>
+                                <option value="LM d. F.">LM d. F.</option>
+                                <option value="OLM d. V.">OLM d. V.</option>
+                                <option value="OLM d. F.">OLM d. F.</option>
+                                <option value="HLM d. V.">HLM d. V.</option>
+                                <option value="HLM d. F.">HLM d. F.</option>
+                                <option value="BM d. V.">BM d. V.</option>
+                                <option value="BM d. F.">BM d. F.</option>
+                                <option value="OBM d. V.">OBM d. V.</option>
+                                <option value="OBM d. F.">OBM d. F.</option>
+                                <option value="HBM d. V.">HBM d. V.</option>
+                                <option value="HBM d. F.">HBM d. F.</option>
+                            </select>
                         </div>
                         <div className="form-group">
                             <label>Geburtsdatum:</label>
