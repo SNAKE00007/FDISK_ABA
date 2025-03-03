@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getMembers, createMember, updateMember } from '../services/members';
+import Sidebar from '../components/Sidebar';
 import '../styles/Members.css';
 
 const Members = () => {
@@ -110,136 +111,139 @@ const Members = () => {
     };
 
     return (
-        <div className="members-page">
-            <div className="members-header">
-                <h1>Mitgliederverwaltung</h1>
-                <button onClick={() => {
-                    setShowForm(true);
-                    setSelectedMember(null);
-                    setFormData({
-                        vorname: '',
-                        nachname: '',
-                        dienstgrad: '',
-                        geburtsdatum: '',
-                        eintrittsdatum: '',
-                        telefonnummer: '',
-                        status: 'active'
-                    });
-                }}>Neues Mitglied hinzufügen</button>
-            </div>
+        <>
+            <Sidebar />
+            <div className="members-page">
+                <div className="members-header">
+                    <h1>Mitgliederverwaltung</h1>
+                    <button onClick={() => {
+                        setShowForm(true);
+                        setSelectedMember(null);
+                        setFormData({
+                            vorname: '',
+                            nachname: '',
+                            dienstgrad: '',
+                            geburtsdatum: '',
+                            eintrittsdatum: '',
+                            telefonnummer: '',
+                            status: 'active'
+                        });
+                    }}>Neues Mitglied hinzufügen</button>
+                </div>
 
-            <div className="search-bar">
-                <input
-                    type="text"
-                    placeholder="Mitglieder suchen..."
-                    value={searchTerm}
-                    onChange={handleSearch}
-                />
-            </div>
+                <div className="search-bar">
+                    <input
+                        type="text"
+                        placeholder="Mitglieder suchen..."
+                        value={searchTerm}
+                        onChange={handleSearch}
+                    />
+                </div>
 
-            {showForm && (
-                <form onSubmit={handleSubmit} className="member-form">
-                    <h2>{selectedMember ? 'Mitglied bearbeiten' : 'Neues Mitglied'}</h2>
-                    <div className="form-group">
-                        <label>Vorname:</label>
-                        <input
-                            type="text"
-                            value={formData.vorname}
-                            onChange={(e) => setFormData({...formData, vorname: e.target.value})}
-                            required
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Nachname:</label>
-                        <input
-                            type="text"
-                            value={formData.nachname}
-                            onChange={(e) => setFormData({...formData, nachname: e.target.value})}
-                            required
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Dienstgrad:</label>
-                        <input
-                            type="text"
-                            value={formData.dienstgrad}
-                            onChange={(e) => setFormData({...formData, dienstgrad: e.target.value})}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Geburtsdatum:</label>
-                        <input
-                            type="date"
-                            value={formData.geburtsdatum}
-                            onChange={(e) => setFormData({...formData, geburtsdatum: e.target.value})}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Eintrittsdatum:</label>
-                        <input
-                            type="date"
-                            value={formData.eintrittsdatum}
-                            onChange={(e) => setFormData({...formData, eintrittsdatum: e.target.value})}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Telefonnummer:</label>
-                        <input
-                            type="tel"
-                            value={formData.telefonnummer}
-                            onChange={(e) => setFormData({...formData, telefonnummer: e.target.value})}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Status:</label>
-                        <select
-                            value={formData.status}
-                            onChange={(e) => setFormData({...formData, status: e.target.value})}
-                        >
-                            <option value="active">Aktiv</option>
-                            <option value="inactive">Inaktiv</option>
-                        </select>
-                    </div>
-                    <div className="form-actions">
-                        <button type="submit">{selectedMember ? 'Aktualisieren' : 'Erstellen'}</button>
-                        <button type="button" onClick={() => setShowForm(false)}>Abbrechen</button>
-                    </div>
-                </form>
-            )}
+                {showForm && (
+                    <form onSubmit={handleSubmit} className="member-form">
+                        <h2>{selectedMember ? 'Mitglied bearbeiten' : 'Neues Mitglied'}</h2>
+                        <div className="form-group">
+                            <label>Vorname:</label>
+                            <input
+                                type="text"
+                                value={formData.vorname}
+                                onChange={(e) => setFormData({...formData, vorname: e.target.value})}
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Nachname:</label>
+                            <input
+                                type="text"
+                                value={formData.nachname}
+                                onChange={(e) => setFormData({...formData, nachname: e.target.value})}
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Dienstgrad:</label>
+                            <input
+                                type="text"
+                                value={formData.dienstgrad}
+                                onChange={(e) => setFormData({...formData, dienstgrad: e.target.value})}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Geburtsdatum:</label>
+                            <input
+                                type="date"
+                                value={formData.geburtsdatum}
+                                onChange={(e) => setFormData({...formData, geburtsdatum: e.target.value})}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Eintrittsdatum:</label>
+                            <input
+                                type="date"
+                                value={formData.eintrittsdatum}
+                                onChange={(e) => setFormData({...formData, eintrittsdatum: e.target.value})}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Telefonnummer:</label>
+                            <input
+                                type="tel"
+                                value={formData.telefonnummer}
+                                onChange={(e) => setFormData({...formData, telefonnummer: e.target.value})}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Status:</label>
+                            <select
+                                value={formData.status}
+                                onChange={(e) => setFormData({...formData, status: e.target.value})}
+                            >
+                                <option value="active">Aktiv</option>
+                                <option value="inactive">Inaktiv</option>
+                            </select>
+                        </div>
+                        <div className="form-actions">
+                            <button type="submit">{selectedMember ? 'Aktualisieren' : 'Erstellen'}</button>
+                            <button type="button" onClick={() => setShowForm(false)}>Abbrechen</button>
+                        </div>
+                    </form>
+                )}
 
-            <div className="table-container">
-                <table className="members-table">
-                    <thead>
-                        <tr>
-                            <th>Dienstgrad</th>
-                            <th>Vorname</th>
-                            <th>Nachname</th>
-                            <th>Geburtsdatum</th>
-                            <th>Eintrittsdatum</th>
-                            <th>Telefon</th>
-                            <th>Status</th>
-                            <th>Aktionen</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredMembers.map(member => (
-                            <tr key={member.id}>
-                                <td>{member.dienstgrad}</td>
-                                <td>{member.vorname}</td>
-                                <td>{member.nachname}</td>
-                                <td>{member.geburtsdatum}</td>
-                                <td>{member.eintrittsdatum}</td>
-                                <td>{member.telefonnummer}</td>
-                                <td>{member.status === 'active' ? 'Aktiv' : 'Inaktiv'}</td>
-                                <td>
-                                    <button onClick={() => handleEdit(member)}>Bearbeiten</button>
-                                </td>
+                <div className="table-container">
+                    <table className="members-table">
+                        <thead>
+                            <tr>
+                                <th>Dienstgrad</th>
+                                <th>Vorname</th>
+                                <th>Nachname</th>
+                                <th>Geburtsdatum</th>
+                                <th>Eintrittsdatum</th>
+                                <th>Telefon</th>
+                                <th>Status</th>
+                                <th>Aktionen</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {filteredMembers.map(member => (
+                                <tr key={member.id}>
+                                    <td>{member.dienstgrad}</td>
+                                    <td>{member.vorname}</td>
+                                    <td>{member.nachname}</td>
+                                    <td>{member.geburtsdatum}</td>
+                                    <td>{member.eintrittsdatum}</td>
+                                    <td>{member.telefonnummer}</td>
+                                    <td>{member.status === 'active' ? 'Aktiv' : 'Inaktiv'}</td>
+                                    <td>
+                                        <button onClick={() => handleEdit(member)}>Bearbeiten</button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
+        </>
     );
 };
 

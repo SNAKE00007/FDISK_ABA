@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Sidebar from '../components/Sidebar';
+import '../styles/Users.css';
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -21,18 +23,24 @@ const Users = () => {
   }, []);
 
   return (
-    <div>
-      <h1>Users</h1>
-      <div>
-        {users.map(user => (
-          <div key={user.id}>
-            <h3>{user.username}</h3>
-            <p>Role: {user.role}</p>
-            <p>Status: {user.status}</p>
-          </div>
-        ))}
+    <>
+      <Sidebar />
+      <div className="users-page">
+        <div className="users-header">
+          <h1>Benutzer verwalten</h1>
+          <button>Neuen Benutzer hinzufügen</button>
+        </div>
+        <div className="users-list">
+          {users.map(user => (
+            <div key={user.id} className="user-item">
+              <h3>{user.username}</h3>
+              <p>Rolle: {user.role}</p>
+              <p>Status: {user.status}</p>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Sidebar from '../components/Sidebar';
 import '../styles/Reports.css';
 
 const Reports = () => {
@@ -150,161 +151,135 @@ const Reports = () => {
     };
 
     return (
-        <div className="reports-page">
-            <div className="reports-header">
-                <h1>Activity Reports</h1>
-                <button onClick={() => setShowForm(true)}>Create New Report</button>
-            </div>
+        <>
+            <Sidebar />
+            <div className="reports-page">
+                <div className="reports-header">
+                    <h1>Tätigkeitsberichte</h1>
+                    <button onClick={() => {
+                        setShowForm(true);
+                        setEditingReport(null);
+                        setFormData({
+                            date: '',
+                            start_time: '',
+                            end_time: '',
+                            duration: '',
+                            type: '',
+                            members: [],
+                            description: ''
+                        });
+                    }}>Neuen Bericht erstellen</button>
+                </div>
 
-            {showForm && (
-                <form onSubmit={handleSubmit} className="report-form">
-                    <h2>{editingReport ? 'Edit Report' : 'New Activity Report'}</h2>
-                    <div className="form-group">
-                        <label>Date:</label>
-                        <input
-                            type="date"
-                            value={formData.date}
-                            onChange={(e) => setFormData({...formData, date: e.target.value})}
-                            required
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Start Time:</label>
-                        <input
-                            type="time"
-                            value={formData.start_time}
-                            onChange={(e) => setFormData({...formData, start_time: e.target.value})}
-                            required
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>End Time (optional):</label>
-                        <input
-                            type="time"
-                            value={formData.end_time || ''}
-                            onChange={(e) => setFormData({...formData, end_time: e.target.value})}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Duration (optional):</label>
-                        <input
-                            type="text"
-                            value={formData.duration || ''}
-                            onChange={(e) => setFormData({...formData, duration: e.target.value})}
-                            placeholder="e.g., 2 hours"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Type:</label>
-                        <select
-                            value={formData.type}
-                            onChange={(e) => setFormData({...formData, type: e.target.value})}
-                            required
-                        >
-                            <option value="">Select type</option>
-                            <option value="exercise">Exercise</option>
-                            <option value="emergency">Emergency</option>
-                            <option value="training">Training</option>
-                            <option value="maintenance">Maintenance</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                    <div className="form-group">
-                        <label>Description:</label>
-                        <textarea
-                            value={formData.description}
-                            onChange={(e) => setFormData({...formData, description: e.target.value})}
-                            rows={4}
-                            required
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Members Present:</label>
-                        <div className="members-select">
-                            {members.map(member => (
-                                <label key={member.id} className="member-checkbox">
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.members.includes(member.id)}
-                                        onChange={(e) => {
-                                            const newMembers = e.target.checked
-                                                ? [...formData.members, member.id]
-                                                : formData.members.filter(id => id !== member.id);
-                                            setFormData({...formData, members: newMembers});
-                                        }}
-                                    />
-                                    {member.dienstgrad} {member.vorname} {member.nachname}
-                                </label>
-                            ))}
+                {showForm && (
+                    <form onSubmit={handleSubmit} className="report-form">
+                        <h2>{editingReport ? 'Bericht bearbeiten' : 'Neuer Bericht'}</h2>
+                        <div className="form-group">
+                            <label>Datum:</label>
+                            <input
+                                type="date"
+                                value={formData.date}
+                                onChange={(e) => setFormData({...formData, date: e.target.value})}
+                                required
+                            />
                         </div>
-                    </div>
-                    <div className="form-actions">
-                        <button type="submit">
-                            {editingReport ? 'Update Report' : 'Create Report'}
-                        </button>
-                        <button type="button" onClick={() => {
-                            setShowForm(false);
-                            setEditingReport(null);
-                            setFormData({
-                                date: '',
-                                start_time: '',
-                                end_time: '',
-                                duration: '',
-                                type: '',
-                                members: [],
-                                description: ''
-                            });
-                        }}>Cancel</button>
-                    </div>
-                </form>
-            )}
-
-            <div className="table-container">
-                <table className="reports-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Start Time</th>
-                            <th>End Time</th>
-                            <th>Duration</th>
-                            <th>Type</th>
-                            <th>Description</th>
-                            <th>Members Present</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {reports.map(report => (
-                            <tr 
-                                key={report.id} 
-                                onClick={() => handleEdit(report)}
-                                style={{ cursor: 'pointer' }}
+                        <div className="form-group">
+                            <label>Startzeit:</label>
+                            <input
+                                type="time"
+                                value={formData.start_time}
+                                onChange={(e) => setFormData({...formData, start_time: e.target.value})}
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Endzeit:</label>
+                            <input
+                                type="time"
+                                value={formData.end_time}
+                                onChange={(e) => setFormData({...formData, end_time: e.target.value})}
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Dauer (optional):</label>
+                            <input
+                                type="text"
+                                value={formData.duration}
+                                onChange={(e) => setFormData({...formData, duration: e.target.value})}
+                                placeholder="z.B. 2 Stunden"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Typ:</label>
+                            <select
+                                value={formData.type}
+                                onChange={(e) => setFormData({...formData, type: e.target.value})}
+                                required
                             >
-                                <td>{report.date}</td>
-                                <td>{report.start_time}</td>
-                                <td>{report.end_time || '-'}</td>
-                                <td>{report.duration || '-'}</td>
-                                <td>{report.type}</td>
-                                <td>{report.description}</td>
-                                <td>
-                                    {members
-                                        .filter(member => report.members.includes(member.id))
-                                        .map(member => `${member.dienstgrad} ${member.vorname} ${member.nachname}`)
-                                        .join(', ')}
-                                </td>
-                                <td className="action-buttons" onClick={e => e.stopPropagation()}>
-                                    <button onClick={() => handleEdit(report)}>Edit</button>
-                                    <button 
-                                        onClick={() => handleDelete(report.id)}
-                                        className="delete-button"
-                                    >Delete</button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                                <option value="">Typ auswählen</option>
+                                <option value="exercise">Übung</option>
+                                <option value="emergency">Einsatz</option>
+                                <option value="training">Schulung</option>
+                                <option value="maintenance">Wartung</option>
+                                <option value="other">Sonstiges</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>Beschreibung:</label>
+                            <textarea
+                                value={formData.description}
+                                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                                rows={4}
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Members Present:</label>
+                            <div className="members-select">
+                                {members.map(member => (
+                                    <label key={member.id} className="member-checkbox">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.members.includes(member.id)}
+                                            onChange={(e) => {
+                                                const newMembers = e.target.checked
+                                                    ? [...formData.members, member.id]
+                                                    : formData.members.filter(id => id !== member.id);
+                                                setFormData({...formData, members: newMembers});
+                                            }}
+                                        />
+                                        {member.dienstgrad} {member.vorname} {member.nachname}
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="form-actions">
+                            <button type="submit">{editingReport ? 'Aktualisieren' : 'Erstellen'}</button>
+                            <button type="button" onClick={() => setShowForm(false)}>Abbrechen</button>
+                        </div>
+                    </form>
+                )}
+
+                <div className="reports-list">
+                    {reports.map(report => (
+                        <div key={report.id} className="report-item">
+                            <h3>{report.type}</h3>
+                            <p>Datum: {report.date}</p>
+                            <p>Zeit: {report.start_time} - {report.end_time}</p>
+                            <p>Beschreibung: {report.description}</p>
+                            <div className="report-actions">
+                                <button onClick={() => handleEdit(report)}>Bearbeiten</button>
+                                <button 
+                                    onClick={() => handleDelete(report.id)}
+                                    className="delete-button"
+                                >Delete</button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
-        </div>
+        </>
     );
 };
 

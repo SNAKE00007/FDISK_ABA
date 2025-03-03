@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Sidebar from '../components/Sidebar';
+import '../styles/Equipment.css';
 
 const Equipment = () => {
   const [equipment, setEquipment] = useState([]);
@@ -21,17 +23,23 @@ const Equipment = () => {
   }, []);
 
   return (
-    <div>
-      <h1>Equipment</h1>
-      <div>
-        {equipment.map(item => (
-          <div key={item.id}>
-            <h3>{item.name}</h3>
-            <p>Status: {item.status}</p>
-          </div>
-        ))}
+    <>
+      <Sidebar />
+      <div className="equipment-page">
+        <div className="equipment-header">
+          <h1>Geräte</h1>
+          <button>Neues Gerät hinzufügen</button>
+        </div>
+        <div className="equipment-list">
+          {equipment.map(item => (
+            <div key={item.id} className="equipment-item">
+              <h3>{item.name}</h3>
+              <p>Status: {item.status}</p>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
