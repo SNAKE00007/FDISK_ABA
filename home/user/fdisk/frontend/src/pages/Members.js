@@ -105,18 +105,7 @@ const Members = () => {
     };
 
     const handleEdit = (member) => {
-        // Format dates from YYYY-DD-MM to YYYY-MM-DD if they exist
-        const formatDate = (dateStr) => {
-            if (!dateStr) return '';
-            const [year, day, month] = dateStr.split('-');
-            return `${year}-${month}-${day}`;
-        };
-
-        setFormData({
-            ...member,
-            geburtsdatum: formatDate(member.geburtsdatum),
-            eintrittsdatum: formatDate(member.eintrittsdatum)
-        });
+        setFormData(member);
         setEditingId(member.id);
         setShowForm(true);
     };
