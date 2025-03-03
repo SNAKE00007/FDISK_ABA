@@ -109,16 +109,17 @@ const Reports = () => {
     };
 
     const handleEdit = (report) => {
+        console.log('Report data received:', report);
+        
+        // Ensure date is in YYYY-MM-DD format for the date input
+        const formattedData = {
+            ...report,
+            date: report.date ? report.date.split('T')[0] : ''
+        };
+        
+        console.log('Formatted data:', formattedData);
+        setFormData(formattedData);
         setEditingReport(report);
-        setFormData({
-            date: report.date,
-            start_time: report.start_time,
-            end_time: report.end_time,
-            duration: report.duration,
-            type: report.type,
-            description: report.description,
-            members: report.members || []
-        });
         setShowForm(true);
     };
 
@@ -153,6 +154,15 @@ const Reports = () => {
 
     const handleSearch = (event) => {
         setSearchTerm(event.target.value);
+    };
+
+    const formatDateForDisplay = (dateStr) => {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}.${month}.${year}`;
     };
 
     const filteredReports = reports.filter(report =>
@@ -295,7 +305,7 @@ const Reports = () => {
                         <tbody>
                             {filteredReports.map(report => (
                                 <tr key={report.id}>
-                                    <td>{report.date}</td>
+                                    <td>{formatDateForDisplay(report.date)}</td>
                                     <td>{report.start_time} - {report.end_time}</td>
                                     <td>{report.type}</td>
                                     <td>{report.description}</td>
