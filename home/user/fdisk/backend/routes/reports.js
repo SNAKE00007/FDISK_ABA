@@ -34,13 +34,17 @@ router.get('/', async (req, res) => {
 // Create report
 router.post('/', async (req, res) => {
     try {
-        const { date, start_time, end_time, duration, type, description, members } = req.body;
-        console.log('Creating report with:', { date, start_time, end_time, duration, type, description, members });
+        const { start_date, end_date, start_time, end_time, duration, type, description, members } = req.body;
+        
+        // Validate dates
+        if (!start_date || !end_date || !start_time || !end_time) {
+            return res.status(400).json({ message: 'Start and end date/time are required' });
+        }
 
         // Add department_id to the report
         const result = await db.query(
-            'INSERT INTO reports (department_id, date, start_time, end_time, duration, type, description) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [req.departmentId, date, start_time, end_time, duration, type, description]
+            'INSERT INTO reports (department_id, start_date, end_date, start_time, end_time, duration, type, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [req.departmentId, start_date, end_date, start_time, end_time, duration, type, description]
         );
         
         // Insert member assignments if any
@@ -59,7 +63,8 @@ router.post('/', async (req, res) => {
         
         res.status(201).json({ 
             id: result.insertId,
-            date,
+            start_date,
+            end_date,
             start_time,
             end_time,
             duration,
@@ -69,18 +74,23 @@ router.post('/', async (req, res) => {
         });
     } catch (error) {
         console.error('Error creating report:', error);
-        res.status(500).json({ message: 'Error creating report' });
+        res.status(500).json({ message: 'Error creating report', error: error.message });
     }
 });
 
 router.put('/:id', async (req, res) => {
     try {
-        const { date, start_time, end_time, duration, type, description, members } = req.body;
+        const { start_date, end_date, start_time, end_time, duration, type, description, members } = req.body;
+        
+        // Validate dates
+        if (!start_date || !end_date || !start_time || !end_time) {
+            return res.status(400).json({ message: 'Start and end date/time are required' });
+        }
         
         // Update the report
         await db.query(
-            'UPDATE reports SET date = ?, start_time = ?, end_time = ?, duration = ?, type = ?, description = ? WHERE id = ?',
-            [date, start_time, end_time, duration, type, description, req.params.id]
+            'UPDATE reports SET start_date = ?, end_date = ?, start_time = ?, end_time = ?, duration = ?, type = ?, description = ? WHERE id = ?',
+            [start_date, end_date, start_time, end_time, duration, type, description, req.params.id]
         );
         
         // Delete existing member assignments
@@ -102,7 +112,8 @@ router.put('/:id', async (req, res) => {
         
         res.json({ 
             id: req.params.id,
-            date,
+            start_date,
+            end_date,
             start_time,
             end_time,
             duration,
