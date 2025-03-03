@@ -8,8 +8,9 @@ const Reports = () => {
     const [showForm, setShowForm] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [formData, setFormData] = useState({
-        date: '',
+        start_date: '',
         start_time: '',
+        end_date: '',
         end_time: '',
         duration: '',
         type: '',
@@ -92,8 +93,9 @@ const Reports = () => {
 
             await fetchReports();
             setFormData({
-                date: '',
+                start_date: '',
                 start_time: '',
+                end_date: '',
                 end_time: '',
                 duration: '',
                 type: '',
@@ -114,7 +116,8 @@ const Reports = () => {
         // Ensure date is in YYYY-MM-DD format for the date input
         const formattedData = {
             ...report,
-            date: report.date ? report.date.split('T')[0] : ''
+            start_date: report.start_date ? report.start_date.split('T')[0] : '',
+            end_date: report.end_date ? report.end_date.split('T')[0] : ''
         };
         
         console.log('Formatted data:', formattedData);
@@ -170,6 +173,64 @@ const Reports = () => {
         report.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    // Add helper functions for date/time calculations
+    const calculateDuration = (startDate, startTime, endDate, endTime) => {
+        if (!startDate || !startTime || !endDate || !endTime) return '';
+        
+        const start = new Date(`${startDate}T${startTime}`);
+        const end = new Date(`${endDate}T${endTime}`);
+        
+        const diffMs = end - start;
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffMinutes = Math.round((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        
+        return `${diffHours}:${String(diffMinutes).padStart(2, '0')}`;
+    };
+
+    const calculateEndDateTime = (startDate, startTime, duration) => {
+        if (!startDate || !startTime || !duration) return { endDate: '', endTime: '' };
+        
+        const [hours, minutes] = duration.split(':').map(Number);
+        const start = new Date(`${startDate}T${startTime}`);
+        const end = new Date(start.getTime() + (hours * 60 * 60 * 1000) + (minutes * 60 * 1000));
+        
+        return {
+            endDate: end.toISOString().split('T')[0],
+            endTime: end.toTimeString().slice(0, 5)
+        };
+    };
+
+    const handleDateTimeChange = (field, value) => {
+        const newFormData = { ...formData, [field]: value };
+        
+        // If we have start date/time and duration, calculate end date/time
+        if (field === 'start_date' || field === 'start_time' || field === 'duration') {
+            if (newFormData.start_date && newFormData.start_time && newFormData.duration) {
+                const { endDate, endTime } = calculateEndDateTime(
+                    newFormData.start_date,
+                    newFormData.start_time,
+                    newFormData.duration
+                );
+                newFormData.end_date = endDate;
+                newFormData.end_time = endTime;
+            }
+        }
+        
+        // If we have start and end date/time, calculate duration
+        if (field === 'start_date' || field === 'start_time' || field === 'end_date' || field === 'end_time') {
+            if (newFormData.start_date && newFormData.start_time && newFormData.end_date && newFormData.end_time) {
+                newFormData.duration = calculateDuration(
+                    newFormData.start_date,
+                    newFormData.start_time,
+                    newFormData.end_date,
+                    newFormData.end_time
+                );
+            }
+        }
+        
+        setFormData(newFormData);
+    };
+
     return (
         <>
             <Sidebar />
@@ -180,8 +241,9 @@ const Reports = () => {
                         setShowForm(true);
                         setEditingReport(null);
                         setFormData({
-                            date: '',
+                            start_date: '',
                             start_time: '',
+                            end_date: '',
                             end_time: '',
                             duration: '',
                             type: '',
@@ -204,11 +266,11 @@ const Reports = () => {
                     <form onSubmit={handleSubmit} className="report-form">
                         <h2>{editingReport ? 'Bericht bearbeiten' : 'Neuer Bericht'}</h2>
                         <div className="form-group">
-                            <label>Datum:</label>
+                            <label>Startdatum:</label>
                             <input
                                 type="date"
-                                value={formData.date}
-                                onChange={(e) => setFormData({...formData, date: e.target.value})}
+                                value={formData.start_date}
+                                onChange={(e) => handleDateTimeChange('start_date', e.target.value)}
                                 required
                             />
                         </div>
@@ -217,7 +279,27 @@ const Reports = () => {
                             <input
                                 type="time"
                                 value={formData.start_time}
-                                onChange={(e) => setFormData({...formData, start_time: e.target.value})}
+                                onChange={(e) => handleDateTimeChange('start_time', e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Dauer (HH:MM):</label>
+                            <input
+                                type="text"
+                                value={formData.duration}
+                                onChange={(e) => handleDateTimeChange('duration', e.target.value)}
+                                placeholder="z.B. 2:30"
+                                pattern="[0-9]{1,2}:[0-9]{2}"
+                                title="Format: HH:MM (z.B. 2:30)"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Enddatum:</label>
+                            <input
+                                type="date"
+                                value={formData.end_date}
+                                onChange={(e) => handleDateTimeChange('end_date', e.target.value)}
                                 required
                             />
                         </div>
@@ -226,17 +308,8 @@ const Reports = () => {
                             <input
                                 type="time"
                                 value={formData.end_time}
-                                onChange={(e) => setFormData({...formData, end_time: e.target.value})}
+                                onChange={(e) => handleDateTimeChange('end_time', e.target.value)}
                                 required
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Dauer (optional):</label>
-                            <input
-                                type="text"
-                                value={formData.duration}
-                                onChange={(e) => setFormData({...formData, duration: e.target.value})}
-                                placeholder="z.B. 2 Stunden"
                             />
                         </div>
                         <div className="form-group">
@@ -294,8 +367,11 @@ const Reports = () => {
                     <table className="reports-table">
                         <thead>
                             <tr>
-                                <th>Datum</th>
-                                <th>Zeit</th>
+                                <th>Startdatum</th>
+                                <th>Startzeit</th>
+                                <th>Enddatum</th>
+                                <th>Endzeit</th>
+                                <th>Dauer</th>
                                 <th>Typ</th>
                                 <th>Beschreibung</th>
                                 <th>Anwesende Mitglieder</th>
@@ -305,8 +381,11 @@ const Reports = () => {
                         <tbody>
                             {filteredReports.map(report => (
                                 <tr key={report.id}>
-                                    <td>{formatDateForDisplay(report.date)}</td>
-                                    <td>{report.start_time} - {report.end_time}</td>
+                                    <td>{formatDateForDisplay(report.start_date)}</td>
+                                    <td>{report.start_time}</td>
+                                    <td>{formatDateForDisplay(report.end_date)}</td>
+                                    <td>{report.end_time}</td>
+                                    <td>{report.duration}</td>
                                     <td>{report.type}</td>
                                     <td>{report.description}</td>
                                     <td>
