@@ -105,11 +105,11 @@ const Members = () => {
     };
 
     const handleEdit = (member) => {
-        // Format dates from DD.MM.YYYY to YYYY-MM-DD if they exist
+        // Format dates from YYYY-DD-MM to YYYY-MM-DD if they exist
         const formatDate = (dateStr) => {
             if (!dateStr) return '';
-            const [day, month, year] = dateStr.split('.');
-            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+            const [year, day, month] = dateStr.split('-');
+            return `${year}-${month}-${day}`;
         };
 
         setFormData({
