@@ -6,6 +6,7 @@ const Reports = () => {
     const [reports, setReports] = useState([]);
     const [members, setMembers] = useState([]);
     const [showForm, setShowForm] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
     const [formData, setFormData] = useState({
         date: '',
         start_time: '',
@@ -122,7 +123,7 @@ const Reports = () => {
     };
 
     const handleDelete = async (reportId) => {
-        if (!window.confirm('Are you sure you want to delete this report?')) {
+        if (!window.confirm('Sind Sie sicher, dass Sie diesen Bericht löschen möchten?')) {
             return;
         }
 
@@ -150,6 +151,15 @@ const Reports = () => {
         }
     };
 
+    const handleSearch = (event) => {
+        setSearchTerm(event.target.value);
+    };
+
+    const filteredReports = reports.filter(report =>
+        report.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        report.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <>
             <Sidebar />
@@ -169,6 +179,15 @@ const Reports = () => {
                             description: ''
                         });
                     }}>Neuen Bericht erstellen</button>
+                </div>
+
+                <div className="search-bar">
+                    <input
+                        type="text"
+                        placeholder="Berichte suchen..."
+                        value={searchTerm}
+                        onChange={handleSearch}
+                    />
                 </div>
 
                 {showForm && (
@@ -235,7 +254,7 @@ const Reports = () => {
                             />
                         </div>
                         <div className="form-group">
-                            <label>Members Present:</label>
+                            <label>Anwesende Mitglieder:</label>
                             <div className="members-select">
                                 {members.map(member => (
                                     <label key={member.id} className="member-checkbox">
@@ -261,22 +280,42 @@ const Reports = () => {
                     </form>
                 )}
 
-                <div className="reports-list">
-                    {reports.map(report => (
-                        <div key={report.id} className="report-item">
-                            <h3>{report.type}</h3>
-                            <p>Datum: {report.date}</p>
-                            <p>Zeit: {report.start_time} - {report.end_time}</p>
-                            <p>Beschreibung: {report.description}</p>
-                            <div className="report-actions">
-                                <button onClick={() => handleEdit(report)}>Bearbeiten</button>
-                                <button 
-                                    onClick={() => handleDelete(report.id)}
-                                    className="delete-button"
-                                >Delete</button>
-                            </div>
-                        </div>
-                    ))}
+                <div className="table-container">
+                    <table className="reports-table">
+                        <thead>
+                            <tr>
+                                <th>Datum</th>
+                                <th>Zeit</th>
+                                <th>Typ</th>
+                                <th>Beschreibung</th>
+                                <th>Anwesende Mitglieder</th>
+                                <th>Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredReports.map(report => (
+                                <tr key={report.id}>
+                                    <td>{report.date}</td>
+                                    <td>{report.start_time} - {report.end_time}</td>
+                                    <td>{report.type}</td>
+                                    <td>{report.description}</td>
+                                    <td>
+                                        {members
+                                            .filter(member => report.members.includes(member.id))
+                                            .map(member => `${member.dienstgrad} ${member.vorname} ${member.nachname}`)
+                                            .join(', ')}
+                                    </td>
+                                    <td>
+                                        <button onClick={() => handleEdit(report)}>Bearbeiten</button>
+                                        <button 
+                                            onClick={() => handleDelete(report.id)}
+                                            className="delete-button"
+                                        >Löschen</button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </>
