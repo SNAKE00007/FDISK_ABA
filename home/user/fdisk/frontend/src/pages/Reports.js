@@ -298,68 +298,76 @@ const Reports = () => {
     };
 
     return (
-        <div className="reports-container">
+        <>
             <Sidebar />
-            <div className="reports-content">
+            <div className="reports-page">
                 <div className="reports-header">
-                    <h1>Berichte</h1>
-                    <div className="search-container">
-                        <input
-                            type="text"
-                            placeholder="Suchen..."
-                            value={searchTerm}
-                            onChange={handleSearch}
-                            className="search-input"
-                        />
-                    </div>
-                    <button onClick={() => { setShowForm(true); setEditingReport(null); }} className="add-button">
-                        Neuer Bericht
-                    </button>
+                    <h1>Tätigkeitsberichte</h1>
+                    <button onClick={() => {
+                        setShowForm(true);
+                        setEditingReport(null);
+                        setFormData({
+                            start_date: '',
+                            start_time: '',
+                            end_date: '',
+                            end_time: '',
+                            duration: '',
+                            type: '',
+                            members: [],
+                            description: ''
+                        });
+                    }}>Neuen Bericht erstellen</button>
+                </div>
+
+                <div className="search-bar">
+                    <input
+                        type="text"
+                        placeholder="Berichte suchen..."
+                        value={searchTerm}
+                        onChange={handleSearch}
+                    />
                 </div>
 
                 {showForm && (
                     <form onSubmit={handleSubmit} className="report-form">
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label>Start Datum:</label>
-                                <input
-                                    type="date"
-                                    value={formData.start_date}
-                                    onChange={(e) => handleDateTimeChange('start_date', e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Start Zeit:</label>
-                                <input
-                                    type="text"
-                                    value={formData.start_time}
-                                    onChange={(e) => handleDateTimeChange('start_time', e.target.value)}
-                                    placeholder="HH:MM"
-                                    required
-                                />
-                            </div>
+                        <h2>{editingReport ? 'Bericht bearbeiten' : 'Neuer Bericht'}</h2>
+                        <div className="form-group">
+                            <label>Startdatum:</label>
+                            <input
+                                type="date"
+                                value={formData.start_date}
+                                onChange={(e) => handleDateTimeChange('start_date', e.target.value)}
+                                required
+                            />
                         </div>
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label>End Datum:</label>
-                                <input
-                                    type="date"
-                                    value={formData.end_date}
-                                    onChange={(e) => handleDateTimeChange('end_date', e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>End Zeit:</label>
-                                <input
-                                    type="text"
-                                    value={formData.end_time}
-                                    onChange={(e) => handleDateTimeChange('end_time', e.target.value)}
-                                    placeholder="HH:MM"
-                                    required
-                                />
-                            </div>
+                        <div className="form-group">
+                            <label>Startzeit:</label>
+                            <input
+                                type="text"
+                                value={formData.start_time}
+                                onChange={(e) => handleDateTimeChange('start_time', e.target.value)}
+                                placeholder="HH:MM"
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Enddatum:</label>
+                            <input
+                                type="date"
+                                value={formData.end_date}
+                                onChange={(e) => handleDateTimeChange('end_date', e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Endzeit:</label>
+                            <input
+                                type="text"
+                                value={formData.end_time}
+                                onChange={(e) => handleDateTimeChange('end_time', e.target.value)}
+                                placeholder="HH:MM"
+                                required
+                            />
                         </div>
                         <div className="form-group">
                             <label>Dauer (HH:MM):</label>
@@ -423,14 +431,14 @@ const Reports = () => {
                     </form>
                 )}
 
-                <div className="reports-table">
-                    <table>
+                <div className="table-container">
+                    <table className="reports-table">
                         <thead>
                             <tr>
-                                <th>Start Datum</th>
-                                <th>Start Zeit</th>
-                                <th>End Datum</th>
-                                <th>End Zeit</th>
+                                <th>Startdatum</th>
+                                <th>Startzeit</th>
+                                <th>Enddatum</th>
+                                <th>Endzeit</th>
                                 <th>Dauer</th>
                                 <th>Typ</th>
                                 <th>Beschreibung</th>
@@ -449,20 +457,17 @@ const Reports = () => {
                                     <td>{report.type}</td>
                                     <td>{report.description}</td>
                                     <td>
-                                        {report.members
-                                            ? members
-                                                .filter(m => report.members.includes(m.id))
-                                                .map(m => `${m.vorname} ${m.nachname}`)
-                                                .join(', ')
-                                            : ''}
+                                        {members
+                                            .filter(member => report.members.includes(member.id))
+                                            .map(member => `${member.dienstgrad} ${member.vorname} ${member.nachname}`)
+                                            .join(', ')}
                                     </td>
                                     <td>
-                                        <button onClick={() => handleEdit(report)} className="edit-button">
-                                            Bearbeiten
-                                        </button>
-                                        <button onClick={() => handleDelete(report.id)} className="delete-button">
-                                            Löschen
-                                        </button>
+                                        <button onClick={() => handleEdit(report)}>Bearbeiten</button>
+                                        <button 
+                                            onClick={() => handleDelete(report.id)}
+                                            className="delete-button"
+                                        >Löschen</button>
                                     </td>
                                 </tr>
                             ))}
@@ -470,7 +475,7 @@ const Reports = () => {
                     </table>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
