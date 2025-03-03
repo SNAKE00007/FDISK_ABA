@@ -142,7 +142,7 @@ const Members = () => {
 
                 {showForm && (
                     <form onSubmit={handleSubmit} className="member-form">
-                        <h2>{selectedMember ? 'Mitglied bearbeiten' : 'Neues Mitglied'}</h2>
+                        <h2>{editingId ? 'Mitglied bearbeiten' : 'Neues Mitglied'}</h2>
                         <div className="form-group">
                             <label>Vorname:</label>
                             <input
@@ -198,7 +198,7 @@ const Members = () => {
                             <label>Geburtsdatum:</label>
                             <input
                                 type="date"
-                                value={formData.geburtsdatum}
+                                value={formData.geburtsdatum || ''}
                                 onChange={(e) => setFormData({...formData, geburtsdatum: e.target.value})}
                             />
                         </div>
@@ -206,7 +206,7 @@ const Members = () => {
                             <label>Eintrittsdatum:</label>
                             <input
                                 type="date"
-                                value={formData.eintrittsdatum}
+                                value={formData.eintrittsdatum || ''}
                                 onChange={(e) => setFormData({...formData, eintrittsdatum: e.target.value})}
                             />
                         </div>
@@ -214,7 +214,7 @@ const Members = () => {
                             <label>Telefonnummer:</label>
                             <input
                                 type="tel"
-                                value={formData.telefonnummer}
+                                value={formData.telefonnummer || ''}
                                 onChange={(e) => setFormData({...formData, telefonnummer: e.target.value})}
                             />
                         </div>
@@ -229,8 +229,20 @@ const Members = () => {
                             </select>
                         </div>
                         <div className="form-actions">
-                            <button type="submit">{selectedMember ? 'Aktualisieren' : 'Erstellen'}</button>
-                            <button type="button" onClick={() => setShowForm(false)}>Abbrechen</button>
+                            <button type="submit">{editingId ? 'Änderungen speichern' : 'Erstellen'}</button>
+                            <button type="button" onClick={() => {
+                                setShowForm(false);
+                                setEditingId(null);
+                                setFormData({
+                                    vorname: '',
+                                    nachname: '',
+                                    dienstgrad: '',
+                                    geburtsdatum: '',
+                                    eintrittsdatum: '',
+                                    telefonnummer: '',
+                                    status: 'active'
+                                });
+                            }}>Abbrechen</button>
                         </div>
                     </form>
                 )}

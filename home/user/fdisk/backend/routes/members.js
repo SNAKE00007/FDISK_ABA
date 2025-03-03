@@ -38,9 +38,10 @@ router.post('/', async (req, res) => {
 // Update member
 router.put('/:id', async (req, res) => {
     try {
+        const { vorname, nachname, dienstgrad, geburtsdatum, eintrittsdatum, telefonnummer, status } = req.body;
         const result = await db.query(
-            'UPDATE members SET ? WHERE id = ?',
-            [req.body, req.params.id]
+            'UPDATE members SET vorname = ?, nachname = ?, dienstgrad = ?, geburtsdatum = ?, eintrittsdatum = ?, telefonnummer = ?, status = ? WHERE id = ?',
+            [vorname, nachname, dienstgrad, geburtsdatum, eintrittsdatum, telefonnummer, status, req.params.id]
         );
         if (result.affectedRows === 0) {
             res.status(404).json({ message: 'Member not found' });
