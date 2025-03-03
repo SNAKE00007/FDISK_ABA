@@ -200,16 +200,64 @@ const Reports = () => {
         };
     };
 
+    // Add new helper functions for time formatting
+    const formatTimeInput = (value) => {
+        // Remove any non-digit characters
+        let digits = value.replace(/\D/g, '');
+        
+        // Handle empty input
+        if (!digits) return '';
+        
+        // Handle partial inputs
+        if (digits.length === 1) {
+            return digits;
+        }
+        if (digits.length === 2) {
+            const hours = parseInt(digits);
+            if (hours >= 24) return '23:';
+            return `${digits.padStart(2, '0')}:`;
+        }
+        
+        // Format complete time
+        let hours = digits.slice(0, 2);
+        let minutes = digits.slice(2, 4);
+        
+        // Validate hours and minutes
+        hours = Math.min(parseInt(hours), 23).toString().padStart(2, '0');
+        if (minutes) {
+            minutes = Math.min(parseInt(minutes), 59).toString().padStart(2, '0');
+        }
+        
+        return minutes ? `${hours}:${minutes}` : `${hours}:`;
+    };
+
+    const formatDurationDisplay = (duration) => {
+        if (!duration) return '';
+        
+        const [hours, minutes] = duration.split(':').map(Number);
+        const days = Math.floor(hours / 24);
+        const remainingHours = hours % 24;
+        
+        let result = '';
+        if (days > 0) {
+            result += `${days}d `;
+        }
+        if (remainingHours > 0 || minutes > 0) {
+            result += `${remainingHours}:${String(minutes).padStart(2, '0')}`;
+        }
+        return result.trim() || '0:00';
+    };
+
+    // Update handleDateTimeChange to include time formatting
     const handleDateTimeChange = (field, value) => {
+        // Format time inputs
+        if (field === 'start_time' || field === 'end_time') {
+            value = formatTimeInput(value);
+        }
+
         // First update the form data with the new value
         const newFormData = { ...formData, [field]: value };
         
-        // Validate time format for time fields
-        if ((field === 'start_time' || field === 'end_time') && !value) {
-            setFormData(newFormData);
-            return;
-        }
-
         // Only proceed with calculations if we have valid values
         try {
             // If we have start date/time and duration, calculate end date/time
@@ -250,61 +298,68 @@ const Reports = () => {
     };
 
     return (
-        <>
+        <div className="reports-container">
             <Sidebar />
-            <div className="reports-page">
+            <div className="reports-content">
                 <div className="reports-header">
-                    <h1>Tätigkeitsberichte</h1>
-                    <button onClick={() => {
-                        setShowForm(true);
-                        setEditingReport(null);
-                        setFormData({
-                            start_date: '',
-                            start_time: '',
-                            end_date: '',
-                            end_time: '',
-                            duration: '',
-                            type: '',
-                            members: [],
-                            description: ''
-                        });
-                    }}>Neuen Bericht erstellen</button>
-                </div>
-
-                <div className="search-bar">
-                    <input
-                        type="text"
-                        placeholder="Berichte suchen..."
-                        value={searchTerm}
-                        onChange={handleSearch}
-                    />
+                    <h1>Berichte</h1>
+                    <div className="search-container">
+                        <input
+                            type="text"
+                            placeholder="Suchen..."
+                            value={searchTerm}
+                            onChange={handleSearch}
+                            className="search-input"
+                        />
+                    </div>
+                    <button onClick={() => { setShowForm(true); setEditingReport(null); }} className="add-button">
+                        Neuer Bericht
+                    </button>
                 </div>
 
                 {showForm && (
                     <form onSubmit={handleSubmit} className="report-form">
-                        <h2>{editingReport ? 'Bericht bearbeiten' : 'Neuer Bericht'}</h2>
-                        <div className="form-group">
-                            <label>Startdatum:</label>
-                            <input
-                                type="date"
-                                value={formData.start_date}
-                                onChange={(e) => handleDateTimeChange('start_date', e.target.value)}
-                                required
-                            />
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>Start Datum:</label>
+                                <input
+                                    type="date"
+                                    value={formData.start_date}
+                                    onChange={(e) => handleDateTimeChange('start_date', e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Start Zeit:</label>
+                                <input
+                                    type="text"
+                                    value={formData.start_time}
+                                    onChange={(e) => handleDateTimeChange('start_time', e.target.value)}
+                                    placeholder="HH:MM"
+                                    required
+                                />
+                            </div>
                         </div>
-                        <div className="form-group">
-                            <label>Startzeit:</label>
-                            <input
-                                type="time"
-                                value={formData.start_time}
-                                onChange={(e) => handleDateTimeChange('start_time', e.target.value)}
-                                onBlur={(e) => {
-                                    if (!e.target.value) {
-                                        handleDateTimeChange('start_time', '00:00');
-                                    }
-                                }}
-                                required
-                            />
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>End Datum:</label>
+                                <input
+                                    type="date"
+                                    value={formData.end_date}
+                                    onChange={(e) => handleDateTimeChange('end_date', e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>End Zeit:</label>
+                                <input
+                                    type="text"
+                                    value={formData.end_time}
+                                    onChange={(e) => handleDateTimeChange('end_time', e.target.value)}
+                                    placeholder="HH:MM"
+                                    required
+                                />
+                            </div>
                         </div>
                         <div className="form-group">
                             <label>Dauer (HH:MM):</label>
@@ -315,29 +370,6 @@ const Reports = () => {
                                 placeholder="z.B. 2:30"
                                 pattern="[0-9]{1,2}:[0-9]{2}"
                                 title="Format: HH:MM (z.B. 2:30)"
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Enddatum:</label>
-                            <input
-                                type="date"
-                                value={formData.end_date}
-                                onChange={(e) => handleDateTimeChange('end_date', e.target.value)}
-                                required
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Endzeit:</label>
-                            <input
-                                type="time"
-                                value={formData.end_time}
-                                onChange={(e) => handleDateTimeChange('end_time', e.target.value)}
-                                onBlur={(e) => {
-                                    if (!e.target.value) {
-                                        handleDateTimeChange('end_time', '00:00');
-                                    }
-                                }}
-                                required
                             />
                         </div>
                         <div className="form-group">
@@ -391,14 +423,14 @@ const Reports = () => {
                     </form>
                 )}
 
-                <div className="table-container">
-                    <table className="reports-table">
+                <div className="reports-table">
+                    <table>
                         <thead>
                             <tr>
-                                <th>Startdatum</th>
-                                <th>Startzeit</th>
-                                <th>Enddatum</th>
-                                <th>Endzeit</th>
+                                <th>Start Datum</th>
+                                <th>Start Zeit</th>
+                                <th>End Datum</th>
+                                <th>End Zeit</th>
                                 <th>Dauer</th>
                                 <th>Typ</th>
                                 <th>Beschreibung</th>
@@ -413,21 +445,24 @@ const Reports = () => {
                                     <td>{report.start_time}</td>
                                     <td>{formatDateForDisplay(report.end_date)}</td>
                                     <td>{report.end_time}</td>
-                                    <td>{report.duration}</td>
+                                    <td>{formatDurationDisplay(report.duration)}</td>
                                     <td>{report.type}</td>
                                     <td>{report.description}</td>
                                     <td>
-                                        {members
-                                            .filter(member => report.members.includes(member.id))
-                                            .map(member => `${member.dienstgrad} ${member.vorname} ${member.nachname}`)
-                                            .join(', ')}
+                                        {report.members
+                                            ? members
+                                                .filter(m => report.members.includes(m.id))
+                                                .map(m => `${m.vorname} ${m.nachname}`)
+                                                .join(', ')
+                                            : ''}
                                     </td>
                                     <td>
-                                        <button onClick={() => handleEdit(report)}>Bearbeiten</button>
-                                        <button 
-                                            onClick={() => handleDelete(report.id)}
-                                            className="delete-button"
-                                        >Löschen</button>
+                                        <button onClick={() => handleEdit(report)} className="edit-button">
+                                            Bearbeiten
+                                        </button>
+                                        <button onClick={() => handleDelete(report.id)} className="delete-button">
+                                            Löschen
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
@@ -435,7 +470,7 @@ const Reports = () => {
                     </table>
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 
