@@ -105,7 +105,21 @@ const Members = () => {
     };
 
     const handleEdit = (member) => {
-        setFormData(member);
+        console.log('Member data received:', member);
+        console.log('Dates:', {
+            geburtsdatum: member.geburtsdatum,
+            eintrittsdatum: member.eintrittsdatum
+        });
+        
+        // Try to ensure dates are in correct format
+        const formattedData = {
+            ...member,
+            geburtsdatum: member.geburtsdatum ? member.geburtsdatum.split('T')[0] : '',
+            eintrittsdatum: member.eintrittsdatum ? member.eintrittsdatum.split('T')[0] : ''
+        };
+        
+        console.log('Formatted data:', formattedData);
+        setFormData(formattedData);
         setEditingId(member.id);
         setShowForm(true);
     };
