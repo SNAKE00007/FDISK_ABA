@@ -53,6 +53,35 @@ const Members = () => {
         setSearchTerm(event.target.value);
     };
 
+    const handleDelete = async (memberId) => {
+        if (!window.confirm('Sind Sie sicher, dass Sie dieses Mitglied löschen möchten?')) {
+            return;
+        }
+
+        try {
+            const userData = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+            if (!userData || !userData.token) {
+                throw new Error('Not authenticated');
+            }
+
+            const response = await fetch(`http://10.0.0.130:5000/api/members/${memberId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': userData.token
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete member');
+            }
+
+            await fetchMembers();
+        } catch (error) {
+            console.error('Error deleting member:', error);
+            alert(error.message);
+        }
+    };
+
     const filteredMembers = members.filter(member =>
         member.nachname.toLowerCase().includes(searchTerm.toLowerCase()) ||
         member.vorname.toLowerCase().includes(searchTerm.toLowerCase())
