@@ -75,40 +75,64 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
     try {
-        const { date, start_time, end_time, duration, type, description, members } = req.body;
+        const { start_date, end_date, start_time, end_time, duration, type, description, members } = req.body;
+        
+        // Validate dates and required fields
+        if (!start_date || !end_date || !start_time || !end_time || !type) {
+            return res.status(400).json({ message: 'Required fields are missing' });
+        }
+
+        // Ensure all values are properly defined before database query
+        const updateValues = {
+            start_date: start_date || null,
+            end_date: end_date || null,
+            start_time: start_time || null,
+            end_time: end_time || null,
+            duration: duration || '',
+            type: type || null,
+            description: description || ''
+        };
         
         // Update the report
         await db.query(
-            'UPDATE reports SET date = ?, start_time = ?, end_time = ?, duration = ?, type = ?, description = ? WHERE id = ?',
-            [date, start_time, end_time, duration, type, description, req.params.id]
+            'UPDATE reports SET start_date = ?, end_date = ?, start_time = ?, end_time = ?, duration = ?, type = ?, description = ? WHERE id = ?',
+            [
+                updateValues.start_date,
+                updateValues.end_date,
+                updateValues.start_time,
+                updateValues.end_time,
+                updateValues.duration,
+                updateValues.type,
+                updateValues.description,
+                req.params.id
+            ]
         );
         
         // Delete existing member assignments
         await db.query('DELETE FROM report_members WHERE report_id = ?', [req.params.id]);
         
         // Insert new member assignments if any
-        if (members && members.length > 0) {
+        if (members && Array.isArray(members) && members.length > 0) {
             const placeholders = members.map(() => '(?, ?)').join(', ');
             const values = members.reduce((acc, memberId) => {
-                acc.push(req.params.id, memberId);
+                if (memberId) {  // Only add valid member IDs
+                    acc.push(req.params.id, memberId);
+                }
                 return acc;
             }, []);
 
-            await db.query(
-                `INSERT INTO report_members (report_id, member_id) VALUES ${placeholders}`,
-                values
-            );
+            if (values.length > 0) {  // Only run query if we have valid members
+                await db.query(
+                    `INSERT INTO report_members (report_id, member_id) VALUES ${placeholders}`,
+                    values
+                );
+            }
         }
         
         res.json({ 
             id: req.params.id,
-            date,
-            start_time,
-            end_time,
-            duration,
-            type,
-            description,
-            members
+            ...updateValues,
+            members: members || []
         });
     } catch (error) {
         console.error('Error updating report:', error);
