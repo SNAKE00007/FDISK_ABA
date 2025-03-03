@@ -201,33 +201,51 @@ const Reports = () => {
     };
 
     const handleDateTimeChange = (field, value) => {
+        // First update the form data with the new value
         const newFormData = { ...formData, [field]: value };
         
-        // If we have start date/time and duration, calculate end date/time
-        if (field === 'start_date' || field === 'start_time' || field === 'duration') {
-            if (newFormData.start_date && newFormData.start_time && newFormData.duration) {
-                const { endDate, endTime } = calculateEndDateTime(
-                    newFormData.start_date,
-                    newFormData.start_time,
-                    newFormData.duration
-                );
-                newFormData.end_date = endDate;
-                newFormData.end_time = endTime;
-            }
+        // Validate time format for time fields
+        if ((field === 'start_time' || field === 'end_time') && !value) {
+            setFormData(newFormData);
+            return;
         }
-        
-        // If we have start and end date/time, calculate duration
-        if (field === 'start_date' || field === 'start_time' || field === 'end_date' || field === 'end_time') {
-            if (newFormData.start_date && newFormData.start_time && newFormData.end_date && newFormData.end_time) {
-                newFormData.duration = calculateDuration(
-                    newFormData.start_date,
-                    newFormData.start_time,
-                    newFormData.end_date,
-                    newFormData.end_time
-                );
+
+        // Only proceed with calculations if we have valid values
+        try {
+            // If we have start date/time and duration, calculate end date/time
+            if (field === 'start_date' || field === 'start_time' || field === 'duration') {
+                if (newFormData.start_date && newFormData.start_time && newFormData.duration) {
+                    const [hours, minutes] = newFormData.duration.split(':').map(Number);
+                    if (!isNaN(hours) && !isNaN(minutes)) {
+                        const start = new Date(`${newFormData.start_date}T${newFormData.start_time}`);
+                        if (start.toString() !== 'Invalid Date') {
+                            const end = new Date(start.getTime() + (hours * 60 * 60 * 1000) + (minutes * 60 * 1000));
+                            newFormData.end_date = end.toISOString().split('T')[0];
+                            newFormData.end_time = end.toTimeString().slice(0, 5);
+                        }
+                    }
+                }
             }
+
+            // If we have start and end date/time, calculate duration
+            if (field === 'start_date' || field === 'start_time' || field === 'end_date' || field === 'end_time') {
+                if (newFormData.start_date && newFormData.start_time && newFormData.end_date && newFormData.end_time) {
+                    const start = new Date(`${newFormData.start_date}T${newFormData.start_time}`);
+                    const end = new Date(`${newFormData.end_date}T${newFormData.end_time}`);
+                    if (start.toString() !== 'Invalid Date' && end.toString() !== 'Invalid Date') {
+                        const diffMs = end - start;
+                        if (diffMs >= 0) {
+                            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                            const diffMinutes = Math.round((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                            newFormData.duration = `${diffHours}:${String(diffMinutes).padStart(2, '0')}`;
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error calculating dates:', error);
         }
-        
+
         setFormData(newFormData);
     };
 
@@ -280,6 +298,11 @@ const Reports = () => {
                                 type="time"
                                 value={formData.start_time}
                                 onChange={(e) => handleDateTimeChange('start_time', e.target.value)}
+                                onBlur={(e) => {
+                                    if (!e.target.value) {
+                                        handleDateTimeChange('start_time', '00:00');
+                                    }
+                                }}
                                 required
                             />
                         </div>
@@ -309,6 +332,11 @@ const Reports = () => {
                                 type="time"
                                 value={formData.end_time}
                                 onChange={(e) => handleDateTimeChange('end_time', e.target.value)}
+                                onBlur={(e) => {
+                                    if (!e.target.value) {
+                                        handleDateTimeChange('end_time', '00:00');
+                                    }
+                                }}
                                 required
                             />
                         </div>
