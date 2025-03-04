@@ -3,6 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import Sidebar from '../components/Sidebar';
 import '../styles/Members.css';
 
+const baseUrl = 'http://10.0.0.130:5000/api';
+
 const Members = () => {
     const { auth } = useAuth();
     const [members, setMembers] = useState([]);
@@ -32,7 +34,7 @@ const Members = () => {
                 throw new Error('Not authenticated');
             }
 
-            const response = await fetch('http://10.0.0.130:5000/api/members', {
+            const response = await fetch(`${baseUrl}/members`, {
                 headers: { 
                     'Authorization': `Bearer ${auth.token}`,
                     'Content-Type': 'application/json'
@@ -64,7 +66,7 @@ const Members = () => {
                 throw new Error('Not authenticated');
             }
 
-            const response = await fetch(`http://10.0.0.130:5000/api/members/${memberId}`, {
+            const response = await fetch(`${baseUrl}/members/${memberId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${auth.token}`
@@ -95,8 +97,8 @@ const Members = () => {
             }
 
             const url = editingId 
-                ? `http://10.0.0.130:5000/api/members/${editingId}`
-                : 'http://10.0.0.130:5000/api/members';
+                ? `${baseUrl}/members/${editingId}`
+                : `${baseUrl}/members`;
                 
             const method = editingId ? 'PUT' : 'POST';
 
