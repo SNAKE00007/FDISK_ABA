@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Sidebar from '../components/Sidebar';
+import { config } from '../config';
 import '../styles/Members.css';
-
-const baseUrl = 'http://10.0.0.130:5000/api';
 
 const Members = () => {
     const { auth } = useAuth();
@@ -34,7 +33,7 @@ const Members = () => {
                 throw new Error('Not authenticated');
             }
 
-            const response = await fetch(`${baseUrl}/members`, {
+            const response = await fetch(`${config.apiUrl}/members`, {
                 headers: { 
                     'Authorization': `Bearer ${auth.token}`,
                     'Content-Type': 'application/json'
@@ -66,7 +65,7 @@ const Members = () => {
                 throw new Error('Not authenticated');
             }
 
-            const response = await fetch(`${baseUrl}/members/${memberId}`, {
+            const response = await fetch(`${config.apiUrl}/members/${memberId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${auth.token}`
@@ -97,8 +96,8 @@ const Members = () => {
             }
 
             const url = editingId 
-                ? `${baseUrl}/members/${editingId}`
-                : `${baseUrl}/members`;
+                ? `${config.apiUrl}/members/${editingId}`
+                : `${config.apiUrl}/members`;
                 
             const method = editingId ? 'PUT' : 'POST';
 

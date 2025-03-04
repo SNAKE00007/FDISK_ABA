@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Sidebar from '../components/Sidebar';
+import { config } from '../config';
 import '../styles/Users.css';
-
-const baseUrl = 'http://10.0.0.130:5000/api';
 
 const Users = () => {
     const { auth } = useAuth();
@@ -31,7 +30,7 @@ const Users = () => {
 
     const fetchUsers = async () => {
         try {
-            const response = await fetch(`${baseUrl}/users/department/${auth.user.department_id}`, {
+            const response = await fetch(`${config.apiUrl}/users/department/${auth.user.department_id}`, {
                 headers: {
                     'Authorization': `Bearer ${auth.token}`,
                     'Content-Type': 'application/json'
@@ -49,7 +48,7 @@ const Users = () => {
 
     const fetchMembers = async () => {
         try {
-            const response = await fetch(`${baseUrl}/members/department/${auth.user.department_id}`, {
+            const response = await fetch(`${config.apiUrl}/members/department/${auth.user.department_id}`, {
                 headers: {
                     'Authorization': `Bearer ${auth.token}`,
                     'Content-Type': 'application/json'
@@ -67,7 +66,7 @@ const Users = () => {
 
     const fetchPermissions = async () => {
         try {
-            const response = await fetch(`${baseUrl}/permissions`, {
+            const response = await fetch(`${config.apiUrl}/permissions`, {
                 headers: {
                     'Authorization': `Bearer ${auth.token}`,
                     'Content-Type': 'application/json'
@@ -116,8 +115,8 @@ const Users = () => {
             };
 
             const url = selectedUser
-                ? `${baseUrl}/users/${selectedUser.id}`
-                : `${baseUrl}/users`;
+                ? `${config.apiUrl}/users/${selectedUser.id}`
+                : `${config.apiUrl}/users`;
             const method = selectedUser ? 'PUT' : 'POST';
 
             if (!selectedUser) {
@@ -147,7 +146,7 @@ const Users = () => {
 
     const handleResetPassword = async (userId) => {
         try {
-            const response = await fetch(`${baseUrl}/users/${userId}/reset-password`, {
+            const response = await fetch(`${config.apiUrl}/users/${userId}/reset-password`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
