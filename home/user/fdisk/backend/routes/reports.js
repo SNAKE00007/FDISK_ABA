@@ -1,14 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
-const { verifyToken } = require('../middleware/auth');
+const { authenticateToken, checkDepartmentAccess } = require('../middleware/auth');
 
-router.use(verifyToken);
-
-
-//test
 // Get all reports
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
     try {
         const reports = await db.query(`
             SELECT r.*, 
@@ -17,7 +13,7 @@ router.get('/', async (req, res) => {
             LEFT JOIN report_members rm ON r.id = rm.report_id 
             WHERE r.department_id = ?
             GROUP BY r.id
-        `, [req.departmentId]);
+        `, [req.user.department_id]);
         
         const formattedReports = reports.map(report => ({
             ...report,
@@ -32,7 +28,7 @@ router.get('/', async (req, res) => {
 });
 
 // Create report
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
     try {
         const { date, start_time, end_time, duration, type, description, members } = req.body;
         console.log('Creating report with:', { date, start_time, end_time, duration, type, description, members });
@@ -40,7 +36,7 @@ router.post('/', async (req, res) => {
         // Add department_id to the report
         const result = await db.query(
             'INSERT INTO reports (department_id, date, start_time, end_time, duration, type, description) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [req.departmentId, date, start_time, end_time, duration, type, description]
+            [req.user.department_id, date, start_time, end_time, duration, type, description]
         );
         
         // Insert member assignments if any
@@ -73,7 +69,8 @@ router.post('/', async (req, res) => {
     }
 });
 
-router.put('/:id', async (req, res) => {
+// Update report
+router.put('/:id', authenticateToken, async (req, res) => {
     try {
         const { start_date, end_date, start_time, end_time, duration, type, description, members } = req.body;
         
@@ -95,7 +92,7 @@ router.put('/:id', async (req, res) => {
         
         // Update the report
         await db.query(
-            'UPDATE reports SET start_date = ?, end_date = ?, start_time = ?, end_time = ?, duration = ?, type = ?, description = ? WHERE id = ?',
+            'UPDATE reports SET start_date = ?, end_date = ?, start_time = ?, end_time = ?, duration = ?, type = ?, description = ? WHERE id = ? AND department_id = ?',
             [
                 updateValues.start_date,
                 updateValues.end_date,
@@ -104,7 +101,8 @@ router.put('/:id', async (req, res) => {
                 updateValues.duration,
                 updateValues.type,
                 updateValues.description,
-                req.params.id
+                req.params.id,
+                req.user.department_id
             ]
         );
         
@@ -141,8 +139,15 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete report
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
     try {
+        // First check if the report belongs to the user's department
+        const [report] = await db.query('SELECT department_id FROM reports WHERE id = ?', [req.params.id]);
+        
+        if (!report || report.department_id !== req.user.department_id) {
+            return res.status(403).json({ message: 'Not authorized to delete this report' });
+        }
+
         await db.query('DELETE FROM report_members WHERE report_id = ?', [req.params.id]);
         await db.query('DELETE FROM reports WHERE id = ?', [req.params.id]);
         res.json({ message: 'Report deleted successfully' });
