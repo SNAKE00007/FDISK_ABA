@@ -6,6 +6,7 @@ import Users from './pages/Users';
 import Equipment from './pages/Equipment';
 import Reports from './pages/Reports';
 import Members from './pages/Members';
+import CommanderPage from './pages/CommanderPage';
 import PrivateRoute from './components/PrivateRoute';
 import Navbar from './components/Navbar';
 
@@ -21,6 +22,7 @@ function App() {
           <PrivateRoute path="/equipment" component={Equipment} />
           <PrivateRoute path="/reports" component={Reports} />
           <PrivateRoute path="/members" component={Members} />
+          <PrivateRoute path="/commanders" component={CommanderPage} />
         </Switch>
       </div>
     </Router>

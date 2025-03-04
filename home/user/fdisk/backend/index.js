@@ -17,6 +17,8 @@ const userRoutes = require('./routes/users');
 const equipmentRoutes = require('./routes/equipment');
 const reportRoutes = require('./routes/reports');
 const memberRoutes = require('./routes/members');
+const organizationRoutes = require('./routes/organization');
+const commanderRoutes = require('./routes/commanders');
 
 dotenv.config();
 
@@ -76,6 +78,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/equipment', equipmentRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/members', memberRoutes);
+app.use('/api/organization', organizationRoutes);
+app.use('/api/commanders', commanderRoutes);
 
 app.get('/', (req, res) => {
     res.send('Backend server is running');
