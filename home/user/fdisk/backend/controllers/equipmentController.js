@@ -1,4 +1,4 @@
-const { db } = require('../index');
+const db = require('../db');
 
 exports.getAllEquipment = (req, res) => {
     db.query('SELECT * FROM equipment', (error, results) => {
