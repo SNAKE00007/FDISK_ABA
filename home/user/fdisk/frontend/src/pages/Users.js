@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Checkbox } from 'semantic-ui-react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
+import '../styles/Users.css';
 
 const Users = () => {
   const { user } = useAuth();
@@ -84,7 +84,8 @@ const Users = () => {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
       const userData = {
         ...formData,
@@ -130,91 +131,120 @@ const Users = () => {
   };
 
   return (
-    <div>
-      <h1>Users Management</h1>
-      <Button primary onClick={handleCreate}>Create New User</Button>
+    <div className="users-page">
+      <div className="users-header">
+        <h1>Users Management</h1>
+        <button onClick={handleCreate} className="create-button">Create New User</button>
+      </div>
 
-      <Table celled>
-        <Table.Header>
-          <Table.Row>
-            <Table.HeaderCell>Username</Table.HeaderCell>
-            <Table.HeaderCell>Role</Table.HeaderCell>
-            <Table.HeaderCell>Member</Table.HeaderCell>
-            <Table.HeaderCell>Status</Table.HeaderCell>
-            <Table.HeaderCell>Actions</Table.HeaderCell>
-          </Table.Row>
-        </Table.Header>
-
-        <Table.Body>
+      <table className="users-table">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Member</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
           {users.map(user => (
-            <Table.Row key={user.id}>
-              <Table.Cell>{user.username}</Table.Cell>
-              <Table.Cell>{user.role}</Table.Cell>
-              <Table.Cell>
+            <tr key={user.id}>
+              <td>{user.username}</td>
+              <td>{user.role}</td>
+              <td>
                 {members.find(m => m.id === user.member_id)?.dienstgrad || 'None'}
-              </Table.Cell>
-              <Table.Cell>{user.is_active ? 'Active' : 'Inactive'}</Table.Cell>
-              <Table.Cell>
-                <Button onClick={() => handleEdit(user)}>Edit</Button>
-                <Button onClick={() => handleResetPassword(user.id)}>Reset Password</Button>
-              </Table.Cell>
-            </Table.Row>
+              </td>
+              <td className={user.is_active ? 'status-active' : 'status-inactive'}>
+                {user.is_active ? 'Active' : 'Inactive'}
+              </td>
+              <td>
+                <button onClick={() => handleEdit(user)} className="edit-button">Edit</button>
+                <button onClick={() => handleResetPassword(user.id)} className="reset-button">Reset Password</button>
+              </td>
+            </tr>
           ))}
-        </Table.Body>
-      </Table>
+        </tbody>
+      </table>
 
-      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <Modal.Header>{selectedUser ? 'Edit User' : 'Create New User'}</Modal.Header>
-        <Modal.Content>
-          <Form>
-            <Form.Input
-              label="Username"
-              value={formData.username}
-              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-            />
-
-            <Form.Select
-              label="Member"
-              options={members.map(member => ({
-                key: member.id,
-                text: `${member.dienstgrad} - ${member.vorname} ${member.nachname}`,
-                value: member.id
-              }))}
-              value={formData.member_id}
-              onChange={(e, { value }) => setFormData({ ...formData, member_id: value })}
-            />
-
-            <Form.Input
-              label="Role"
-              value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-            />
-
-            <Form.Checkbox
-              label="Active"
-              checked={formData.is_active}
-              onChange={(e, { checked }) => setFormData({ ...formData, is_active: checked })}
-            />
-
-            <div className="field">
-              <label>Permissions</label>
-              {permissions.map(permission => (
-                <div key={permission.id} className="permission-checkbox">
-                  <Checkbox
-                    label={permission.name}
-                    checked={formData.permissions.includes(permission.id)}
-                    onChange={() => handlePermissionChange(permission.id)}
-                  />
-                </div>
-              ))}
+      {isModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h2>{selectedUser ? 'Edit User' : 'Create New User'}</h2>
+              <button onClick={() => setIsModalOpen(false)} className="close-button">&times;</button>
             </div>
-          </Form>
-        </Modal.Content>
-        <Modal.Actions>
-          <Button onClick={() => setIsModalOpen(false)}>Cancel</Button>
-          <Button primary onClick={handleSubmit}>Save</Button>
-        </Modal.Actions>
-      </Modal>
+            <form onSubmit={handleSubmit} className="user-form">
+              <div className="form-group">
+                <label>Username</label>
+                <input
+                  type="text"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Member</label>
+                <select
+                  value={formData.member_id}
+                  onChange={(e) => setFormData({ ...formData, member_id: e.target.value })}
+                >
+                  <option value="">Select a member</option>
+                  {members.map(member => (
+                    <option key={member.id} value={member.id}>
+                      {member.dienstgrad} - {member.vorname} {member.nachname}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Role</label>
+                <input
+                  type="text"
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_active}
+                    onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                  />
+                  Active
+                </label>
+              </div>
+
+              <div className="form-group">
+                <label>Permissions</label>
+                <div className="permissions-list">
+                  {permissions.map(permission => (
+                    <label key={permission.id} className="permission-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={formData.permissions.includes(permission.id)}
+                        onChange={() => handlePermissionChange(permission.id)}
+                      />
+                      {permission.name}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="cancel-button">Cancel</button>
+                <button type="submit" className="save-button">Save</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
