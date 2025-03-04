@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { getMembers, createMember, updateMember } from '../services/members';
+import { useAuth } from '../contexts/AuthContext';
 import Sidebar from '../components/Sidebar';
 import '../styles/Members.css';
 
 const Members = () => {
+    const { auth } = useAuth();
     const [members, setMembers] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedMember, setSelectedMember] = useState(null);
@@ -20,19 +21,20 @@ const Members = () => {
     const [editingId, setEditingId] = useState(null);
 
     useEffect(() => {
-        fetchMembers();
-    }, []);
+        if (auth?.token) {
+            fetchMembers();
+        }
+    }, [auth]);
 
     const fetchMembers = async () => {
         try {
-            const userData = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
-            if (!userData || !userData.token) {
+            if (!auth?.token) {
                 throw new Error('Not authenticated');
             }
 
-            const response = await fetch('http://10.0.0.130:5000/api/members', {  // Update URL to match your backend
+            const response = await fetch('http://10.0.0.130:5000/api/members', {
                 headers: { 
-                    'Authorization': userData.token,  // Remove template literal
+                    'Authorization': `Bearer ${auth.token}`,
                     'Content-Type': 'application/json'
                 }
             });
@@ -45,7 +47,6 @@ const Members = () => {
             setMembers(data);
         } catch (error) {
             console.error('Error fetching members:', error);
-            alert(error.message);
         }
     };
 
@@ -59,15 +60,14 @@ const Members = () => {
         }
 
         try {
-            const userData = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
-            if (!userData || !userData.token) {
+            if (!auth?.token) {
                 throw new Error('Not authenticated');
             }
 
             const response = await fetch(`http://10.0.0.130:5000/api/members/${memberId}`, {
                 method: 'DELETE',
                 headers: {
-                    'Authorization': userData.token
+                    'Authorization': `Bearer ${auth.token}`
                 }
             });
 
@@ -90,22 +90,21 @@ const Members = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            if (!auth?.token) {
+                throw new Error('Not authenticated');
+            }
+
             const url = editingId 
                 ? `http://10.0.0.130:5000/api/members/${editingId}`
                 : 'http://10.0.0.130:5000/api/members';
                 
             const method = editingId ? 'PUT' : 'POST';
-            
-            const userData = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
-            if (!userData || !userData.token) {
-                throw new Error('Not authenticated');
-            }
 
             const response = await fetch(url, {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': userData.token
+                    'Authorization': `Bearer ${auth.token}`
                 },
                 body: JSON.stringify(formData)
             });
