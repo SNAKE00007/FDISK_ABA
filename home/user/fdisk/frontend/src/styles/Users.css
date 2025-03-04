@@ -55,4 +55,56 @@
   margin: 0 0 4px 0;
   color: #4a5568;
   font-size: 14px;
+}
+
+.permission-checkbox {
+  margin: 8px 0;
+  padding: 8px;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+}
+
+.permission-checkbox:hover {
+  background-color: #f0f0f0;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+/* Modal styles */
+.ui.modal .content {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* Table styles */
+.ui.table {
+  margin-top: 20px;
+}
+
+/* Button spacing */
+.ui.button {
+  margin-right: 8px;
+}
+
+/* Header spacing */
+h1 {
+  margin-bottom: 20px;
+}
+
+/* Form field spacing */
+.ui.form .field {
+  margin-bottom: 16px;
+}
+
+/* Active/Inactive status colors */
+.status-active {
+  color: #21ba45;
+}
+
+.status-inactive {
+  color: #db2828;
 } 
